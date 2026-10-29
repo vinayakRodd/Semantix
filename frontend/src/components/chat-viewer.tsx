@@ -62,6 +62,34 @@ export function ChatViewer({ data, onClear }: ChatViewerProps) {
   const [showTopicBadges, setShowTopicBadges] = useState(true);
   const [showMetadata, setShowMetadata] = useState(true);
   const [showMetricsHud, setShowMetricsHud] = useState(true);
+  const filterDropdownRef = React.useRef<HTMLDivElement>(null);
+
+  // Document-level click outside & escape key listener for Feature Filters dropdown
+  useEffect(() => {
+    if (!isFeatureFilterOpen) return;
+
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        filterDropdownRef.current &&
+        !filterDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsFeatureFilterOpen(false);
+      }
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsFeatureFilterOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isFeatureFilterOpen]);
 
   // Fetch topic segmentation automatically when messages load
   useEffect(() => {
@@ -266,7 +294,7 @@ export function ChatViewer({ data, onClear }: ChatViewerProps) {
           {/* Action Buttons on the right */}
           <div className="flex flex-wrap items-center gap-2">
             {/* Feature Filters Dropdown Button */}
-            <div className="relative">
+            <div ref={filterDropdownRef} className="relative">
               <Button
                 variant="outline"
                 size="sm"
@@ -288,18 +316,13 @@ export function ChatViewer({ data, onClear }: ChatViewerProps) {
               {/* Feature Filters Popover Panel */}
               <AnimatePresence>
                 {isFeatureFilterOpen && (
-                  <>
-                    <div
-                      className="fixed inset-0 z-40"
-                      onClick={() => setIsFeatureFilterOpen(false)}
-                    />
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.95, y: -5 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.95, y: -5 }}
-                      transition={{ duration: 0.2 }}
-                      className="absolute right-0 top-12 z-50 w-80 rounded-2xl border-2 border-emerald-500/50 bg-[#080a09] p-4 shadow-[0_0_35px_rgba(0,255,136,0.3)] backdrop-blur-3xl space-y-4"
-                    >
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: -5 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: -5 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute right-0 top-12 z-50 w-80 rounded-2xl border-2 border-emerald-500/50 bg-[#080a09] p-4 shadow-[0_0_35px_rgba(0,255,136,0.3)] backdrop-blur-3xl space-y-4"
+                  >
                       <div className="flex items-center justify-between pb-2 border-b border-emerald-500/20">
                         <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#00ff88] flex items-center gap-1.5 neon-text-glow">
                           <Eye className="h-3.5 w-3.5" />
@@ -382,7 +405,6 @@ export function ChatViewer({ data, onClear }: ChatViewerProps) {
                         />
                       </div>
                     </motion.div>
-                  </>
                 )}
               </AnimatePresence>
             </div>
