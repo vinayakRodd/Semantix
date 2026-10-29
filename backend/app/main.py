@@ -9,9 +9,12 @@ from backend.app.schemas import (
     SampleChatOption,
     CompressChatRequest,
     CompressChatResponse,
+    SegmentTopicsRequest,
+    SegmentTopicsResponse,
 )
 from backend.app.parsers.manager import parser_manager
 from backend.app.services.compression import compression_service
+from backend.app.services.segmentation import dialogue_segmentation_service
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -98,4 +101,27 @@ async def compress_chat(payload: CompressChatRequest):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to process compression metrics: {str(exc)}"
+        )
+
+
+@app.post("/api/segment-topics", response_model=SegmentTopicsResponse)
+async def segment_topics(payload: SegmentTopicsRequest):
+    """
+    Analyzes conversation turns via deterministic NLP / TF-IDF keyword graphs
+    and segments them into coherent, labeled subtopic clusters.
+    """
+    if not payload.messages:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Message array cannot be empty."
+        )
+
+    try:
+        result = dialogue_segmentation_service.segment(payload.messages)
+        return result
+    except Exception as exc:
+        logger.error(f"Error during dialogue segmentation: {exc}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to segment dialogue topics: {str(exc)}"
         )

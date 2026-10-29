@@ -10,9 +10,10 @@ import { cn } from "@/lib/utils";
 
 interface ChatMessageItemProps {
   message: ChatMessage;
+  topicLabel?: string;
 }
 
-export function ChatMessageItem({ message }: ChatMessageItemProps) {
+export function ChatMessageItem({ message, topicLabel }: ChatMessageItemProps) {
   const isUser = message.role.toLowerCase() === "user";
   const [copied, setCopied] = useState(false);
 
@@ -69,6 +70,12 @@ export function ChatMessageItem({ message }: ChatMessageItemProps) {
               <Badge variant="neon" className="text-[10px] py-0 px-2 truncate max-w-[150px]">
                 {message.model}
               </Badge>
+            )}
+
+            {topicLabel && (
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-emerald-950/40 text-emerald-300 border border-emerald-500/30 truncate max-w-[220px]">
+                {topicLabel}
+              </span>
             )}
 
             {message.timestamp && (

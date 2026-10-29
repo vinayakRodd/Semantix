@@ -52,3 +52,22 @@ class CompressChatResponse(BaseModel):
     metrics: CompressionMetrics
     compressed_messages: List[ChatMessage]
     error: Optional[str] = None
+
+
+class TopicSegment(BaseModel):
+    id: str = Field(..., description="Unique identifier for the topic cluster")
+    title: str = Field(..., description="Human-readable title for the topic")
+    turn_indices: List[int] = Field(..., description="Indices of conversation turns belonging to this topic")
+    turn_count: int = Field(..., description="Total number of turns in this topic")
+    keywords: List[str] = Field(default_factory=list, description="Top keywords characterizing this topic")
+
+
+class SegmentTopicsRequest(BaseModel):
+    messages: List[ChatMessage] = Field(..., description="Conversation messages to cluster into subtopics")
+
+
+class SegmentTopicsResponse(BaseModel):
+    success: bool = True
+    total_topics: int
+    topics: List[TopicSegment]
+    error: Optional[str] = None

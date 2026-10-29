@@ -42,6 +42,21 @@ export interface CompressChatResponse {
   error?: string;
 }
 
+export interface TopicSegment {
+  id: string;
+  title: string;
+  turn_indices: number[];
+  turn_count: number;
+  keywords: string[];
+}
+
+export interface SegmentTopicsResponse {
+  success: boolean;
+  total_topics: number;
+  topics: TopicSegment[];
+  error?: string;
+}
+
 const BACKEND_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -90,6 +105,33 @@ export async function compressChatFromBackend(
       }
     } catch {
       // ignore json parse error
+    }
+    throw new Error(errorDetail);
+  }
+
+  return response.json();
+}
+
+export async function segmentTopicsFromBackend(
+  messages: ChatMessage[]
+): Promise<SegmentTopicsResponse> {
+  const response = await fetch(`${BACKEND_BASE_URL}/api/segment-topics`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ messages }),
+  });
+
+  if (!response.ok) {
+    let errorDetail = `Error ${response.status}: Failed to segment dialogue topics`;
+    try {
+      const errJson = await response.json();
+      if (errJson.detail) {
+        errorDetail = errJson.detail;
+      }
+    } catch {
+      // ignore
     }
     throw new Error(errorDetail);
   }

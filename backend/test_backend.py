@@ -96,6 +96,26 @@ def test_api_endpoints():
     assert r.status_code == 400
     print("✓ API POST /api/compress-chat empty array rejected (400 Bad Request)")
 
+    # 8. POST /api/segment-topics with valid multi-topic conversation
+    multi_topic_messages = [
+        {"role": "user", "content": "How do I optimize SQL queries in PostgreSQL using B-Tree indexes?"},
+        {"role": "assistant", "content": "Use EXPLAIN ANALYZE and create composite B-tree indexes on your filter and join columns."},
+        {"role": "user", "content": "Now switching gears: What are Transformers and attention in Large Language Models?"},
+        {"role": "assistant", "content": "Transformers use self-attention mechanisms to weigh relationships between token embeddings across a context window."},
+    ]
+    r = client.post("/api/segment-topics", json={"messages": multi_topic_messages})
+    assert r.status_code == 200
+    seg_data = r.json()
+    assert seg_data["success"] is True
+    assert seg_data["total_topics"] >= 2
+    assert len(seg_data["topics"]) >= 2
+    print("✓ API POST /api/segment-topics clustered conversation into", seg_data["total_topics"], "topics")
+
+    # 9. POST /api/segment-topics empty message list
+    r = client.post("/api/segment-topics", json={"messages": []})
+    assert r.status_code == 400
+    print("✓ API POST /api/segment-topics empty array rejected (400 Bad Request)")
+
 
 if __name__ == "__main__":
     asyncio.run(test_parsers())
