@@ -11,9 +11,14 @@ import { cn } from "@/lib/utils";
 interface ChatMessageItemProps {
   message: ChatMessage;
   topicLabel?: string;
+  showMetadata?: boolean;
 }
 
-export function ChatMessageItem({ message, topicLabel }: ChatMessageItemProps) {
+export function ChatMessageItem({
+  message,
+  topicLabel,
+  showMetadata = true,
+}: ChatMessageItemProps) {
   const isUser = message.role.toLowerCase() === "user";
   const [copied, setCopied] = useState(false);
 
@@ -42,7 +47,7 @@ export function ChatMessageItem({ message, topicLabel }: ChatMessageItemProps) {
           "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border font-semibold text-xs shadow-md mt-0.5",
           isUser
             ? "bg-zinc-900 border-zinc-700 text-zinc-400"
-            : "bg-emerald-500/15 border-emerald-500/40 text-[#00ff88] shadow-[0_0_12px_rgba(0,255,136,0.25)]"
+            : "bg-zinc-950 border border-emerald-500/50 text-[#00ff88] shadow-[0_0_12px_rgba(0,255,136,0.25)]"
         )}
       >
         {isUser ? (
@@ -66,7 +71,7 @@ export function ChatMessageItem({ message, topicLabel }: ChatMessageItemProps) {
               {isUser ? "You / User" : "Assistant"}
             </span>
 
-            {message.model && (
+            {showMetadata && message.model && (
               <Badge variant="neon" className="text-[10px] py-0 px-2 truncate max-w-[150px]">
                 {message.model}
               </Badge>
@@ -78,7 +83,7 @@ export function ChatMessageItem({ message, topicLabel }: ChatMessageItemProps) {
               </span>
             )}
 
-            {message.timestamp && (
+            {showMetadata && message.timestamp && (
               <span className="text-[11px] text-zinc-500 shrink-0 font-mono">
                 {message.timestamp}
               </span>

@@ -16,6 +16,9 @@ import {
   Layers,
   Tag,
   Filter,
+  ChevronDown,
+  SlidersHorizontal,
+  Eye,
 } from "lucide-react";
 import {
   FetchChatResponse,
@@ -42,10 +45,18 @@ export function ChatViewer({ data, onClear }: ChatViewerProps) {
   const [viewMode, setViewMode] = useState<"original" | "compressed">("original");
   const [compressionError, setCompressionError] = useState<string | null>(null);
 
-  // Topic Segmentation States (Multi-select toggling)
+  // Topic Segmentation States (Multi-select toggling & collapsible)
   const [topics, setTopics] = useState<TopicSegment[]>([]);
   const [selectedTopicIds, setSelectedTopicIds] = useState<string[]>([]);
   const [isLoadingTopics, setIsLoadingTopics] = useState(false);
+  const [isTopicsExpanded, setIsTopicsExpanded] = useState(true);
+
+  // Feature Filters Popover State
+  const [isFeatureFilterOpen, setIsFeatureFilterOpen] = useState(false);
+  const [roleFilter, setRoleFilter] = useState<"all" | "user" | "assistant">("all");
+  const [showTopicBadges, setShowTopicBadges] = useState(true);
+  const [showMetadata, setShowMetadata] = useState(true);
+  const [showMetricsHud, setShowMetricsHud] = useState(true);
 
   // Fetch topic segmentation automatically when messages load
   useEffect(() => {
@@ -77,10 +88,8 @@ export function ChatViewer({ data, onClear }: ChatViewerProps) {
   const handleToggleTopic = (topicId: string) => {
     setSelectedTopicIds((prev) => {
       if (prev.includes(topicId)) {
-        // Toggle off
         return prev.filter((id) => id !== topicId);
       } else {
-        // Toggle on
         return [...prev, topicId];
       }
     });
@@ -116,7 +125,7 @@ export function ChatViewer({ data, onClear }: ChatViewerProps) {
       if (result.success && result.metrics) {
         setMetrics(result.metrics);
         setCompressedMessages(result.compressed_messages);
-        setViewMode("compressed"); // Automatically switch to view compressed result
+        setViewMode("compressed");
       }
     } catch (err: unknown) {
       if (err instanceof Error) {
@@ -132,7 +141,7 @@ export function ChatViewer({ data, onClear }: ChatViewerProps) {
   // Base messages based on view mode (original vs compressed)
   const baseMessages = viewMode === "compressed" && compressedMessages ? compressedMessages : data.messages;
 
-  // Filter messages based on multi-selected toggled topics
+  // Filter messages based on multi-selected toggled topics AND role filter
   const allowedTurnIndices = React.useMemo(() => {
     if (isAllSelected) return null; // show all
     const indices = new Set<number>();
@@ -146,9 +155,16 @@ export function ChatViewer({ data, onClear }: ChatViewerProps) {
 
   const displayedEntries = baseMessages
     .map((message, originalIndex) => ({ message, originalIndex }))
-    .filter(({ originalIndex }) => {
-      if (!allowedTurnIndices) return true;
-      return allowedTurnIndices.has(originalIndex);
+    .filter(({ message, originalIndex }) => {
+      // 1. Topic filtering
+      if (allowedTurnIndices && !allowedTurnIndices.has(originalIndex)) {
+        return false;
+      }
+      // 2. Role filtering
+      if (roleFilter !== "all" && message.role.toLowerCase() !== roleFilter) {
+        return false;
+      }
+      return true;
     });
 
   const activeKeywords = React.useMemo(() => {
@@ -162,10 +178,12 @@ export function ChatViewer({ data, onClear }: ChatViewerProps) {
   }, [isAllSelected, selectedTopicIds, topics]);
 
   const getTopicLabelForTurn = (index: number): string | undefined => {
-    if (!topics || topics.length <= 1) return undefined;
+    if (!showTopicBadges || !topics || topics.length <= 1) return undefined;
     const found = topics.find((t) => t.turn_indices.includes(index));
     return found ? found.title : undefined;
   };
+
+  const hasCustomFilters = roleFilter !== "all" || !showTopicBadges || !showMetadata || !showMetricsHud;
 
   return (
     <motion.div
@@ -206,8 +224,153 @@ export function ChatViewer({ data, onClear }: ChatViewerProps) {
             </h2>
           </div>
 
-          {/* Quick Actions */}
+          {/* Quick Actions & Feature Filter Menu */}
           <div className="flex flex-wrap items-center gap-2 shrink-0">
+            {/* Feature Filters Dropdown Button */}
+            <div className="relative">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsFeatureFilterOpen(!isFeatureFilterOpen)}
+                className={`gap-1.5 text-xs font-mono transition-all cursor-pointer ${
+                  hasCustomFilters
+                    ? "border-[#00ff88] text-[#00ff88] bg-emerald-500/15 shadow-[0_0_12px_rgba(0,255,136,0.25)]"
+                    : "border-emerald-500/30 text-emerald-300 hover:text-[#00ff88] hover:border-emerald-400"
+                }`}
+                title="Toggle viewing features and filters"
+              >
+                <SlidersHorizontal className="h-3.5 w-3.5" />
+                <span>Feature Filters</span>
+                {hasCustomFilters && (
+                  <span className="h-2 w-2 rounded-full bg-[#00ff88] animate-pulse" />
+                )}
+              </Button>
+
+              {/* Feature Filters Popover Panel */}
+              <AnimatePresence>
+                {isFeatureFilterOpen && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-40"
+                      onClick={() => setIsFeatureFilterOpen(false)}
+                    />
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95, y: -5 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: -5 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute right-0 top-11 z-50 w-72 rounded-2xl border border-emerald-500/40 bg-zinc-950 p-4 shadow-2xl neon-glow-card backdrop-blur-2xl space-y-4"
+                    >
+                      <div className="flex items-center justify-between pb-2 border-b border-emerald-500/20">
+                        <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#00ff88] flex items-center gap-1.5">
+                          <Eye className="h-3.5 w-3.5" />
+                          Feature Controls
+                        </span>
+                        {hasCustomFilters && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setRoleFilter("all");
+                              setShowTopicBadges(true);
+                              setShowMetadata(true);
+                              setShowMetricsHud(true);
+                            }}
+                            className="text-[10px] font-mono text-zinc-500 hover:text-emerald-300 transition-colors cursor-pointer"
+                          >
+                            Reset Defaults
+                          </button>
+                        )}
+                      </div>
+
+                      {/* 1. Role Filter Toggle */}
+                      <div className="space-y-1.5">
+                        <label className="text-[11px] font-mono text-zinc-400">
+                          Filter by Speaker Role:
+                        </label>
+                        <div className="grid grid-cols-3 gap-1 rounded-xl bg-zinc-900 p-1 border border-zinc-800">
+                          <button
+                            type="button"
+                            onClick={() => setRoleFilter("all")}
+                            className={`rounded-lg py-1 text-[11px] font-mono transition-all cursor-pointer ${
+                              roleFilter === "all"
+                                ? "bg-emerald-500/20 text-[#00ff88] border border-emerald-500/40 font-bold"
+                                : "text-zinc-400 hover:text-zinc-200"
+                            }`}
+                          >
+                            All
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setRoleFilter("user")}
+                            className={`rounded-lg py-1 text-[11px] font-mono transition-all cursor-pointer ${
+                              roleFilter === "user"
+                                ? "bg-emerald-500/20 text-[#00ff88] border border-emerald-500/40 font-bold"
+                                : "text-zinc-400 hover:text-zinc-200"
+                            }`}
+                          >
+                            User
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setRoleFilter("assistant")}
+                            className={`rounded-lg py-1 text-[11px] font-mono transition-all cursor-pointer ${
+                              roleFilter === "assistant"
+                                ? "bg-emerald-500/20 text-[#00ff88] border border-emerald-500/40 font-bold"
+                                : "text-zinc-400 hover:text-zinc-200"
+                            }`}
+                          >
+                            Assistant
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* 2. Feature Toggles */}
+                      <div className="space-y-2.5 pt-1 border-t border-zinc-900 text-xs font-mono">
+                        {/* Subtopic badges toggle */}
+                        <label className="flex items-center justify-between cursor-pointer group">
+                          <span className="text-zinc-300 group-hover:text-white">
+                            Subtopic Badges on Turns
+                          </span>
+                          <input
+                            type="checkbox"
+                            checked={showTopicBadges}
+                            onChange={(e) => setShowTopicBadges(e.target.checked)}
+                            className="h-4 w-4 rounded accent-[#00ff88] cursor-pointer"
+                          />
+                        </label>
+
+                        {/* Turn Timestamps toggle */}
+                        <label className="flex items-center justify-between cursor-pointer group">
+                          <span className="text-zinc-300 group-hover:text-white">
+                            Timestamps & Model Tags
+                          </span>
+                          <input
+                            type="checkbox"
+                            checked={showMetadata}
+                            onChange={(e) => setShowMetadata(e.target.checked)}
+                            className="h-4 w-4 rounded accent-[#00ff88] cursor-pointer"
+                          />
+                        </label>
+
+                        {/* Live Metrics HUD toggle */}
+                        <label className="flex items-center justify-between cursor-pointer group">
+                          <span className="text-zinc-300 group-hover:text-white">
+                            Live Metrics HUD Card
+                          </span>
+                          <input
+                            type="checkbox"
+                            checked={showMetricsHud}
+                            onChange={(e) => setShowMetricsHud(e.target.checked)}
+                            className="h-4 w-4 rounded accent-[#00ff88] cursor-pointer"
+                          />
+                        </label>
+                      </div>
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
+            </div>
+
             {/* The Compression & Metrics Action Button */}
             <Button
               variant="outline"
@@ -309,7 +472,7 @@ export function ChatViewer({ data, onClear }: ChatViewerProps) {
 
       {/* Live Animated Metrics Bar HUD */}
       <AnimatePresence>
-        {metrics && (
+        {showMetricsHud && metrics && (
           <motion.div
             initial={{ opacity: 0, height: 0, y: -10 }}
             animate={{ opacity: 1, height: "auto", y: 0 }}
@@ -397,7 +560,7 @@ export function ChatViewer({ data, onClear }: ChatViewerProps) {
         )}
       </AnimatePresence>
 
-      {/* Phase 2: Clickable Topic Filter Chips Bar */}
+      {/* Phase 2: Clickable Topic Filter Chips Bar (Collapsible with Dropdown Arrow) */}
       {topics.length > 1 && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -405,89 +568,122 @@ export function ChatViewer({ data, onClear }: ChatViewerProps) {
           transition={{ duration: 0.3 }}
           className="rounded-2xl border border-emerald-500/30 bg-zinc-950/80 p-4 shadow-xl neon-glow-card backdrop-blur-md space-y-3"
         >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider text-emerald-400">
+          {/* Collapsible Header with Dropdown Arrow */}
+          <div
+            onClick={() => setIsTopicsExpanded(!isTopicsExpanded)}
+            className="flex items-center justify-between cursor-pointer select-none group"
+          >
+            <div className="flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider text-emerald-400 group-hover:text-[#00ff88] transition-colors">
               <Filter className="h-3.5 w-3.5 text-[#00ff88]" />
               <span>Multi-Select Subtopics (Toggable)</span>
               {isLoadingTopics && <Loader2 className="h-3 w-3 animate-spin text-[#00ff88]" />}
             </div>
-            <span className="text-[11px] font-mono text-zinc-500">
-              {isAllSelected
-                ? `Showing all ${data.message_count} turns`
-                : `Filtered to ${displayedEntries.length} turns (${selectedTopicIds.length} of ${topics.length} selected)`}
-            </span>
+
+            <div className="flex items-center gap-3">
+              <span className="text-[11px] font-mono text-zinc-500 hidden sm:inline">
+                {isAllSelected
+                  ? `Showing all ${data.message_count} turns`
+                  : `Filtered to ${displayedEntries.length} turns (${selectedTopicIds.length} of ${topics.length} selected)`}
+              </span>
+
+              {/* Animated Dropdown Chevron Arrow */}
+              <button
+                type="button"
+                className="flex h-7 w-7 items-center justify-center rounded-lg border border-zinc-800 bg-zinc-900 text-zinc-400 group-hover:border-emerald-500/40 group-hover:text-[#00ff88] transition-all"
+                title={isTopicsExpanded ? "Collapse subtopics bar" : "Expand subtopics bar"}
+              >
+                <ChevronDown
+                  className={`h-4 w-4 transition-transform duration-200 ${
+                    isTopicsExpanded ? "rotate-180 text-[#00ff88]" : ""
+                  }`}
+                />
+              </button>
+            </div>
           </div>
 
-          {/* Filter Pills Carousel (Multi-select toggling) */}
-          <div className="flex flex-wrap items-center gap-2 pt-1">
-            {/* "All Turns" Toggle Chip */}
-            <button
-              type="button"
-              onClick={handleSelectAll}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono transition-all cursor-pointer ${
-                isAllSelected
-                  ? "bg-emerald-500/20 text-[#00ff88] border border-emerald-500/60 shadow-[0_0_12px_rgba(0,255,136,0.25)] font-bold"
-                  : "bg-zinc-900/60 border border-zinc-800 text-zinc-400 hover:border-emerald-500/30 hover:text-zinc-200"
-              }`}
-            >
-              {isAllSelected && <Check className="h-3 w-3 stroke-[3] text-[#00ff88]" />}
-              <span>All Turns</span>
-              <span className="text-[10px] opacity-75 font-normal">({data.message_count})</span>
-            </button>
-
-            {/* Individual Subtopic Cluster Toggable Chips */}
-            {topics.map((topic, idx) => {
-              const isSelected = selectedTopicIds.includes(topic.id);
-              return (
-                <button
-                  key={topic.id}
-                  type="button"
-                  onClick={() => handleToggleTopic(topic.id)}
-                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-mono transition-all cursor-pointer ${
-                    isSelected
-                      ? "bg-emerald-500/25 text-[#00ff88] border border-[#00ff88] shadow-[0_0_15px_rgba(0,255,136,0.35)] font-bold"
-                      : "bg-zinc-900/70 border border-zinc-800 text-zinc-300 hover:border-emerald-500/40 hover:text-[#00ff88] hover:bg-emerald-500/5"
-                  }`}
-                  title={isSelected ? "Click to deselect topic" : "Click to add topic to filter"}
-                >
-                  <span className="flex items-center gap-1.5">
-                    {isSelected ? (
-                      <Check className="h-3 w-3 stroke-[3] text-[#00ff88] shrink-0" />
-                    ) : (
-                      <span className="text-[10px] text-emerald-400 opacity-80 shrink-0">{idx + 1}.</span>
-                    )}
-                    <span className="truncate max-w-[180px] sm:max-w-[260px]">{topic.title}</span>
-                  </span>
-                  <span
-                    className={`text-[10px] px-1.5 py-0.2 rounded border shrink-0 ${
-                      isSelected
-                        ? "bg-emerald-500/20 text-[#00ff88] border-emerald-500/40"
-                        : "bg-zinc-800/80 text-zinc-400 border-zinc-700/60"
+          {/* Collapsible Subtopics Body */}
+          <AnimatePresence initial={false}>
+            {isTopicsExpanded && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.25, ease: "easeInOut" }}
+                className="overflow-hidden space-y-3 pt-1"
+              >
+                {/* Filter Pills Carousel (Multi-select toggling) */}
+                <div className="flex flex-wrap items-center gap-2">
+                  {/* "All Turns" Toggle Chip */}
+                  <button
+                    type="button"
+                    onClick={handleSelectAll}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono transition-all cursor-pointer ${
+                      isAllSelected
+                        ? "bg-emerald-500/20 text-[#00ff88] border border-emerald-500/60 shadow-[0_0_12px_rgba(0,255,136,0.25)] font-bold"
+                        : "bg-zinc-900/60 border border-zinc-800 text-zinc-400 hover:border-emerald-500/30 hover:text-zinc-200"
                     }`}
                   >
-                    {topic.turn_count}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
+                    {isAllSelected && <Check className="h-3 w-3 stroke-[3] text-[#00ff88]" />}
+                    <span>All Turns</span>
+                    <span className="text-[10px] opacity-75 font-normal">({data.message_count})</span>
+                  </button>
 
-          {/* Active Topics Keywords Pill */}
-          {activeKeywords.length > 0 && (
-            <div className="flex flex-wrap items-center gap-1.5 pt-1 text-[11px] font-mono text-zinc-500 border-t border-zinc-900">
-              <span className="flex items-center gap-1 text-emerald-400/70">
-                <Tag className="h-3 w-3" /> Topic Keywords:
-              </span>
-              {activeKeywords.map((kw, i) => (
-                <span
-                  key={i}
-                  className="px-2 py-0.5 rounded bg-zinc-900 text-zinc-300 border border-zinc-800 text-[10px]"
-                >
-                  {kw}
-                </span>
-              ))}
-            </div>
-          )}
+                  {/* Individual Subtopic Cluster Toggable Chips */}
+                  {topics.map((topic, idx) => {
+                    const isSelected = selectedTopicIds.includes(topic.id);
+                    return (
+                      <button
+                        key={topic.id}
+                        type="button"
+                        onClick={() => handleToggleTopic(topic.id)}
+                        className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-mono transition-all cursor-pointer ${
+                          isSelected
+                            ? "bg-emerald-500/25 text-[#00ff88] border border-[#00ff88] shadow-[0_0_15px_rgba(0,255,136,0.35)] font-bold"
+                            : "bg-zinc-900/70 border border-zinc-800 text-zinc-300 hover:border-emerald-500/40 hover:text-[#00ff88] hover:bg-emerald-500/5"
+                        }`}
+                        title={isSelected ? "Click to deselect topic" : "Click to add topic to filter"}
+                      >
+                        <span className="flex items-center gap-1.5">
+                          {isSelected ? (
+                            <Check className="h-3 w-3 stroke-[3] text-[#00ff88] shrink-0" />
+                          ) : (
+                            <span className="text-[10px] text-emerald-400 opacity-80 shrink-0">{idx + 1}.</span>
+                          )}
+                          <span className="truncate max-w-[180px] sm:max-w-[260px]">{topic.title}</span>
+                        </span>
+                        <span
+                          className={`text-[10px] px-1.5 py-0.2 rounded border shrink-0 ${
+                            isSelected
+                              ? "bg-emerald-500/20 text-[#00ff88] border-emerald-500/40"
+                              : "bg-zinc-800/80 text-zinc-400 border-zinc-700/60"
+                          }`}
+                        >
+                          {topic.turn_count}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Active Topics Keywords Pill */}
+                {activeKeywords.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-1.5 pt-2 text-[11px] font-mono text-zinc-500 border-t border-zinc-900">
+                    <span className="flex items-center gap-1 text-emerald-400/70">
+                      <Tag className="h-3 w-3" /> Topic Keywords:
+                    </span>
+                    {activeKeywords.map((kw, i) => (
+                      <span
+                        key={i}
+                        className="px-2 py-0.5 rounded bg-zinc-900 text-zinc-300 border border-zinc-800 text-[10px]"
+                      >
+                        {kw}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
       )}
 
@@ -499,6 +695,7 @@ export function ChatViewer({ data, onClear }: ChatViewerProps) {
               key={`${viewMode}-${originalIndex}`}
               message={message}
               topicLabel={getTopicLabelForTurn(originalIndex)}
+              showMetadata={showMetadata}
             />
           ))}
         </AnimatePresence>
