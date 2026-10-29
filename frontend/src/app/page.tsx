@@ -27,10 +27,8 @@ import {
 } from "@/lib/storage";
 import {
   fetchChatFromBackend,
-  fetchSampleOptions,
   checkBackendHealth,
   FetchChatResponse,
-  SampleChatOption,
 } from "@/lib/api";
 
 // Lazy load ChatViewer with next/dynamic
@@ -44,20 +42,17 @@ const ChatViewer = dynamic(
 
 export default function Home() {
   const [chatData, setChatData] = useState<FetchChatResponse | null>(null);
-  const [samples, setSamples] = useState<SampleChatOption[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [backendOnline, setBackendOnline] = useState<boolean | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
   const [history, setHistory] = useState<HistoryItem[]>([]);
 
-  // Load samples, history from localStorage, and check backend status on mount
+  // Load history from localStorage, and check backend status on mount
   useEffect(() => {
     async function init() {
       const isHealthy = await checkBackendHealth();
       setBackendOnline(isHealthy);
-      const sampleList = await fetchSampleOptions();
-      setSamples(sampleList);
       setHistory(getChatHistory());
     }
     init();
@@ -186,7 +181,6 @@ export default function Home() {
           <UrlInput
             onFetch={handleFetchChat}
             isLoading={isLoading}
-            samples={samples}
           />
         </div>
 

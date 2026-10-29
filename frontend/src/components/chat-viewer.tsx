@@ -195,37 +195,71 @@ export function ChatViewer({ data, onClear }: ChatViewerProps) {
     >
       {/* Header Bar with Neon Green Glowing Card */}
       <div className="rounded-2xl border border-emerald-500/40 bg-zinc-950/80 p-4 sm:p-5 shadow-2xl neon-glow-card backdrop-blur-xl w-full min-w-0 max-w-full overflow-hidden space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 min-w-0">
-          <div className="space-y-1.5 min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="neon" className="gap-1.5 font-mono">
-                <Sparkles className="h-3 w-3 text-[#00ff88]" />
-                {data.platform}
+        {/* Full-Width Header: Status Badges & Title (Immune to horizontal squishing) */}
+        <div className="space-y-2.5 w-full">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="neon" className="gap-1.5 font-mono whitespace-nowrap shrink-0">
+              <Sparkles className="h-3 w-3 text-[#00ff88]" />
+              {data.platform}
+            </Badge>
+            <Badge variant="secondary" className="gap-1 font-mono text-zinc-300 border-zinc-800 whitespace-nowrap shrink-0">
+              <Hash className="h-3 w-3 text-emerald-400" />
+              {displayedEntries.length} of {data.message_count} {data.message_count === 1 ? "turn" : "turns"}
+            </Badge>
+            {viewMode === "compressed" && (
+              <Badge variant="success" className="gap-1 font-mono text-xs whitespace-nowrap shrink-0">
+                <Zap className="h-3 w-3 text-[#00ff88]" />
+                Compressed View
               </Badge>
-              <Badge variant="secondary" className="gap-1 font-mono text-zinc-400 border-zinc-800">
-                <Hash className="h-3 w-3 text-emerald-400" />
-                {displayedEntries.length} of {data.message_count} {data.message_count === 1 ? "turn" : "turns"}
+            )}
+            {topics.length > 1 && (
+              <Badge variant="outline" className="gap-1 font-mono text-xs border-emerald-500/40 text-[#00ff88] whitespace-nowrap shrink-0">
+                <Layers className="h-3 w-3" />
+                {topics.length} Subtopics
               </Badge>
-              {viewMode === "compressed" && (
-                <Badge variant="success" className="gap-1 font-mono text-xs">
-                  <Zap className="h-3 w-3 text-[#00ff88]" />
-                  Compressed View
-                </Badge>
-              )}
-              {topics.length > 1 && (
-                <Badge variant="outline" className="gap-1 font-mono text-xs border-emerald-500/40 text-[#00ff88]">
-                  <Layers className="h-3 w-3" />
-                  {topics.length} Subtopics
-                </Badge>
-              )}
-            </div>
-            <h2 className="text-xl font-bold tracking-tight text-white break-words">
-              {data.title}
-            </h2>
+            )}
           </div>
 
-          {/* Quick Actions & Feature Filter Menu */}
-          <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white break-words leading-snug w-full">
+            {data.title}
+          </h2>
+        </div>
+
+        {/* Full-Width Action & Controls Toolbar */}
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-zinc-800/80 w-full">
+          {/* View switcher on the left */}
+          <div className="flex items-center gap-2">
+            {compressedMessages && (
+              <div className="flex items-center gap-1 rounded-xl bg-zinc-900/90 p-1 border border-zinc-800">
+                <button
+                  type="button"
+                  onClick={() => setViewMode("original")}
+                  className={`px-3 py-1 rounded-lg text-xs font-mono transition-all cursor-pointer whitespace-nowrap ${
+                    viewMode === "original"
+                      ? "bg-zinc-800 text-white border border-zinc-700 shadow-sm font-bold"
+                      : "text-zinc-400 hover:text-zinc-200"
+                  }`}
+                >
+                  Original ({data.messages.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode("compressed")}
+                  className={`px-3 py-1 rounded-lg text-xs font-mono transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
+                    viewMode === "compressed"
+                      ? "bg-emerald-500/20 text-[#00ff88] border border-emerald-500/40 shadow-[0_0_10px_rgba(0,255,136,0.15)] font-bold"
+                      : "text-zinc-400 hover:text-[#00ff88]"
+                  }`}
+                >
+                  <Zap className="h-3 w-3" />
+                  Compressed ({compressedMessages.length})
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Action Buttons on the right */}
+          <div className="flex flex-wrap items-center gap-2">
             {/* Feature Filters Dropdown Button */}
             <div className="relative">
               <Button
@@ -427,40 +461,12 @@ export function ChatViewer({ data, onClear }: ChatViewerProps) {
               variant="ghost"
               size="sm"
               onClick={onClear}
-              className="text-xs text-zinc-400 hover:text-emerald-300 hover:bg-emerald-500/10"
+              className="text-xs text-zinc-400 hover:text-emerald-300 hover:bg-emerald-500/10 whitespace-nowrap"
             >
               Clear
             </Button>
           </div>
         </div>
-
-        {/* View Switcher Tabs (when compressed data is available) */}
-        {compressedMessages && (
-          <div className="flex items-center gap-2 pt-2 border-t border-zinc-800/80">
-            <span className="text-xs font-mono text-zinc-500">View:</span>
-            <button
-              onClick={() => setViewMode("original")}
-              className={`px-3 py-1 rounded-lg text-xs font-mono transition-all cursor-pointer ${
-                viewMode === "original"
-                  ? "bg-zinc-800 text-white border border-zinc-700 shadow-sm"
-                  : "text-zinc-400 hover:text-zinc-200"
-              }`}
-            >
-              Original ({data.messages.length} turns)
-            </button>
-            <button
-              onClick={() => setViewMode("compressed")}
-              className={`px-3 py-1 rounded-lg text-xs font-mono transition-all flex items-center gap-1.5 cursor-pointer ${
-                viewMode === "compressed"
-                  ? "bg-emerald-500/20 text-[#00ff88] border border-emerald-500/40 shadow-[0_0_10px_rgba(0,255,136,0.15)]"
-                  : "text-zinc-400 hover:text-[#00ff88]"
-              }`}
-            >
-              <Zap className="h-3 w-3" />
-              Compressed ({compressedMessages.length} turns)
-            </button>
-          </div>
-        )}
       </div>
 
       {/* Error state if compression fails */}
