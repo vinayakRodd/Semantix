@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -8,8 +8,6 @@ import {
   Terminal,
   AlertCircle,
   Activity,
-  CheckCircle2,
-  XCircle,
   Menu,
 } from "lucide-react";
 import { UrlInput } from "@/components/url-input";
@@ -25,7 +23,6 @@ import {
 } from "@/lib/storage";
 import {
   fetchChatFromBackend,
-  checkBackendHealth,
   FetchChatResponse,
 } from "@/lib/api";
 
@@ -42,19 +39,10 @@ export default function Home() {
   const [chatData, setChatData] = useState<FetchChatResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [backendOnline, setBackendOnline] = useState<boolean | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
-  const [history, setHistory] = useState<HistoryItem[]>([]);
-
-  // Load history from localStorage, and check backend status on mount
-  useEffect(() => {
-    async function init() {
-      const isHealthy = await checkBackendHealth();
-      setBackendOnline(isHealthy);
-      setHistory(getChatHistory());
-    }
-    init();
-  }, []);
+  const [history, setHistory] = useState<HistoryItem[]>(() =>
+    typeof window !== "undefined" ? getChatHistory() : []
+  );
 
   const handleFetchChat = async (url: string) => {
     setIsLoading(true);
@@ -131,28 +119,6 @@ export default function Home() {
               <span className="ml-2 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-mono text-[#00ff88]">
                 v1.0
               </span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            {/* Backend connectivity indicator */}
-            <div className="hidden sm:flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-zinc-950/90 px-3 py-1 text-xs font-mono shadow-sm">
-              {backendOnline === null ? (
-                <>
-                  <span className="h-2 w-2 rounded-full bg-zinc-500 animate-pulse" />
-                  <span className="text-zinc-400">Connecting Backend...</span>
-                </>
-              ) : backendOnline ? (
-                <>
-                  <CheckCircle2 className="h-3.5 w-3.5 text-[#00ff88]" />
-                  <span className="text-[#00ff88] font-medium">Python API Online</span>
-                </>
-              ) : (
-                <>
-                  <XCircle className="h-3.5 w-3.5 text-amber-400" />
-                  <span className="text-amber-400">Python API Offline</span>
-                </>
-              )}
             </div>
           </div>
         </div>
