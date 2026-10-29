@@ -19,6 +19,13 @@ import { ChatLoadingSkeleton } from "@/components/chat-loading-skeleton";
 import { ScrollToTop } from "@/components/scroll-to-top";
 import { Sidebar } from "@/components/sidebar";
 import {
+  getChatHistory,
+  saveChatToHistory,
+  deleteChatFromHistory,
+  clearChatHistory,
+  HistoryItem,
+} from "@/lib/storage";
+import {
   fetchChatFromBackend,
   fetchSampleOptions,
   checkBackendHealth,
@@ -42,14 +49,16 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [backendOnline, setBackendOnline] = useState<boolean | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
+  const [history, setHistory] = useState<HistoryItem[]>([]);
 
-  // Load samples and check backend status on mount
+  // Load samples, history from localStorage, and check backend status on mount
   useEffect(() => {
     async function init() {
       const isHealthy = await checkBackendHealth();
       setBackendOnline(isHealthy);
       const sampleList = await fetchSampleOptions();
       setSamples(sampleList);
+      setHistory(getChatHistory());
     }
     init();
   }, []);
@@ -61,6 +70,15 @@ export default function Home() {
     try {
       const data = await fetchChatFromBackend(url);
       setChatData(data);
+
+      // Automatically store public link & conversation in browser localStorage
+      const updatedHistory = saveChatToHistory({
+        url: data.url,
+        title: data.title,
+        platform: data.platform,
+        messageCount: data.messages.length,
+      });
+      setHistory(updatedHistory);
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
@@ -76,6 +94,16 @@ export default function Home() {
   const handleClear = () => {
     setChatData(null);
     setError(null);
+  };
+
+  const handleDeleteHistoryItem = (id: string) => {
+    const updated = deleteChatFromHistory(id);
+    setHistory(updated);
+  };
+
+  const handleClearAllHistory = () => {
+    clearChatHistory();
+    setHistory([]);
   };
 
   return (
@@ -214,6 +242,9 @@ export default function Home() {
         onClose={() => setIsSidebarOpen(false)}
         onSelectChat={(url) => handleFetchChat(url)}
         onNewChat={handleClear}
+        history={history}
+        onDeleteHistoryItem={handleDeleteHistoryItem}
+        onClearHistory={handleClearAllHistory}
       />
     </div>
   );

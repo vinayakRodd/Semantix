@@ -14,41 +14,19 @@ import {
   Search,
   FileText,
   ChevronRight,
+  Trash2,
 } from "lucide-react";
+import { HistoryItem } from "@/lib/storage";
 
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectChat: (url: string) => void;
   onNewChat: () => void;
+  history: HistoryItem[];
+  onDeleteHistoryItem: (id: string) => void;
+  onClearHistory: () => void;
 }
-
-const RECENT_CHATS = [
-  {
-    id: "sample-fastapi",
-    title: "Python Async FastAPI Architecture",
-    platform: "ChatGPT-4o",
-    url: "sample://fastapi-architecture",
-  },
-  {
-    id: "sample-claude",
-    title: "Dark Design Systems & Radix",
-    platform: "Claude 3.5",
-    url: "sample://claude-design-system",
-  },
-  {
-    id: "biweekly-topics",
-    title: "LeetCode Biweekly Contest Topics",
-    platform: "ChatGPT",
-    url: "https://chatgpt.com/share/6ae37b26-33fc-83ee-8bb6-d4b75eacf0bd",
-  },
-  {
-    id: "gcd-splits",
-    title: "Optimize GCD Splits O(N)",
-    platform: "ChatGPT",
-    url: "https://chatgpt.com/share/6ae3806f-6bc0-83ee-99d2-36736c538615",
-  },
-];
 
 const SEM_EL_MODULES = [
   {
@@ -81,7 +59,15 @@ const SEM_EL_MODULES = [
   },
 ];
 
-export function Sidebar({ isOpen, onClose, onSelectChat, onNewChat }: SidebarProps) {
+export function Sidebar({
+  isOpen,
+  onClose,
+  onSelectChat,
+  onNewChat,
+  history,
+  onDeleteHistoryItem,
+  onClearHistory,
+}: SidebarProps) {
   return (
     <AnimatePresence>
       {isOpen && (
@@ -107,7 +93,7 @@ export function Sidebar({ isOpen, onClose, onSelectChat, onNewChat }: SidebarPro
             {/* Top Branding & Close Header */}
             <div className="flex h-16 items-center justify-between border-b border-emerald-500/20 px-5">
               <div className="flex items-center gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-emerald-500/50 bg-zinc-950 text-[#00ff88] shadow-[0_0_12px_rgba(0,255,136,0.3)]">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-emerald-500/50 bg-zinc-950 text-[#00ff88] shadow-[0_0_12px_rgba(0,255,136,0.3)] font-bold">
                   <Bot className="h-4 w-4" />
                 </div>
                 <div className="font-mono text-sm font-bold tracking-tight text-white">
@@ -146,35 +132,78 @@ export function Sidebar({ isOpen, onClose, onSelectChat, onNewChat }: SidebarPro
                 <Sparkles className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100" />
               </button>
 
-              {/* Recent Conversations / History Section */}
+              {/* Stored Conversations / History Section */}
               <div className="space-y-2">
-                <div className="flex items-center gap-1.5 px-2 text-[11px] font-mono font-semibold uppercase tracking-wider text-emerald-400/80">
-                  <History className="h-3.5 w-3.5" />
-                  <span>Recent Conversations</span>
+                <div className="flex items-center justify-between px-2 text-[11px] font-mono font-semibold uppercase tracking-wider text-emerald-400/80">
+                  <span className="flex items-center gap-1.5">
+                    <History className="h-3.5 w-3.5" />
+                    <span>Stored History ({history.length})</span>
+                  </span>
+
+                  {history.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={onClearHistory}
+                      className="text-[10px] text-zinc-500 hover:text-rose-400 transition-colors cursor-pointer"
+                      title="Clear localStorage history"
+                    >
+                      Clear All
+                    </button>
+                  )}
                 </div>
 
                 <div className="space-y-1">
-                  {RECENT_CHATS.map((chat) => (
-                    <button
-                      key={chat.id}
-                      type="button"
-                      onClick={() => {
-                        onSelectChat(chat.url);
-                        onClose();
-                      }}
-                      className="group flex w-full items-center justify-between rounded-xl border border-transparent p-2.5 text-left text-xs transition-all hover:border-emerald-500/30 hover:bg-zinc-900/60 cursor-pointer"
-                    >
-                      <div className="min-w-0 flex-1 space-y-0.5 pr-2">
-                        <div className="truncate font-medium text-zinc-200 group-hover:text-[#00ff88]">
-                          {chat.title}
-                        </div>
-                        <div className="flex items-center gap-1.5 text-[10px] font-mono text-zinc-500">
-                          <span>{chat.platform}</span>
+                  {history.length === 0 ? (
+                    <div className="p-4 text-center rounded-xl border border-zinc-800/80 bg-zinc-950/40 text-xs text-zinc-500 font-mono">
+                      No stored links yet. Paste any link to save it here.
+                    </div>
+                  ) : (
+                    history.map((chat) => (
+                      <div
+                        key={chat.id}
+                        className="group flex w-full items-center justify-between rounded-xl border border-transparent p-2 text-left text-xs transition-all hover:border-emerald-500/30 hover:bg-zinc-900/60"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onSelectChat(chat.url);
+                            onClose();
+                          }}
+                          className="min-w-0 flex-1 space-y-0.5 pr-2 text-left cursor-pointer"
+                        >
+                          <div className="truncate font-medium text-zinc-200 group-hover:text-[#00ff88]">
+                            {chat.title}
+                          </div>
+                          <div className="flex items-center gap-2 text-[10px] font-mono text-zinc-500">
+                            <span className="text-emerald-400/80">{chat.platform}</span>
+                            <span>•</span>
+                            <span>{chat.messageCount} turns</span>
+                            {chat.timestamp && (
+                              <>
+                                <span>•</span>
+                                <span>{chat.timestamp}</span>
+                              </>
+                            )}
+                          </div>
+                        </button>
+
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onDeleteHistoryItem(chat.id);
+                            }}
+                            className="p-1 rounded text-zinc-600 hover:text-rose-400 hover:bg-rose-950/30 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                            title="Remove from history"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                          <ChevronRight className="h-3.5 w-3.5 text-zinc-600 group-hover:text-[#00ff88] transition-colors" />
                         </div>
                       </div>
-                      <ChevronRight className="h-3.5 w-3.5 shrink-0 text-zinc-600 group-hover:text-[#00ff88] transition-colors" />
-                    </button>
-                  ))}
+                    ))
+                  )}
                 </div>
               </div>
 
