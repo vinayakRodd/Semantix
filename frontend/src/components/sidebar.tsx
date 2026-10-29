@@ -255,7 +255,7 @@ export function Sidebar({
                 <div className="flex items-center gap-3 min-w-0">
                   {/* User Avatar with Glowing Neon Online Dot */}
                   <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-emerald-500/50 bg-zinc-950 text-sm font-bold font-mono text-[#00ff88] shadow-[0_0_12px_rgba(0,255,136,0.25)]">
-                    VR
+                    M
                     <span className="absolute -bottom-0.5 -right-0.5 flex h-3 w-3">
                       <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#00ff88] opacity-75"></span>
                       <span className="relative inline-flex h-3 w-3 rounded-full border-2 border-zinc-950 bg-[#00ff88]"></span>
@@ -266,11 +266,11 @@ export function Sidebar({
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
                       <span className="truncate text-xs font-bold text-white">
-                        Vinayak Rodd
+                        Meghana
                       </span>
                     </div>
                     <div className="truncate text-[10px] font-mono text-zinc-400">
-                      vinayakrodd70@gmail.com
+                      @meghana • Sem-EL
                     </div>
                   </div>
                 </div>
