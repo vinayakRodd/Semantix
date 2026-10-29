@@ -42,9 +42,9 @@ export function ChatViewer({ data, onClear }: ChatViewerProps) {
   const [viewMode, setViewMode] = useState<"original" | "compressed">("original");
   const [compressionError, setCompressionError] = useState<string | null>(null);
 
-  // Topic Segmentation States
+  // Topic Segmentation States (Multi-select toggling)
   const [topics, setTopics] = useState<TopicSegment[]>([]);
-  const [activeTopicId, setActiveTopicId] = useState<string>("all");
+  const [selectedTopicIds, setSelectedTopicIds] = useState<string[]>([]);
   const [isLoadingTopics, setIsLoadingTopics] = useState(false);
 
   // Fetch topic segmentation automatically when messages load
@@ -60,7 +60,7 @@ export function ChatViewer({ data, onClear }: ChatViewerProps) {
         const res = await segmentTopicsFromBackend(data.messages);
         if (isMounted && res.success && res.topics) {
           setTopics(res.topics);
-          setActiveTopicId("all");
+          setSelectedTopicIds([]); // Default to all topics active
         }
       } catch {
         // Fallback gracefully
@@ -73,6 +73,24 @@ export function ChatViewer({ data, onClear }: ChatViewerProps) {
       isMounted = false;
     };
   }, [data.messages]);
+
+  const handleToggleTopic = (topicId: string) => {
+    setSelectedTopicIds((prev) => {
+      if (prev.includes(topicId)) {
+        // Toggle off
+        return prev.filter((id) => id !== topicId);
+      } else {
+        // Toggle on
+        return [...prev, topicId];
+      }
+    });
+  };
+
+  const handleSelectAll = () => {
+    setSelectedTopicIds([]);
+  };
+
+  const isAllSelected = selectedTopicIds.length === 0 || selectedTopicIds.length === topics.length;
 
   const handleCopyTranscript = () => {
     const targetMessages = viewMode === "compressed" && compressedMessages ? compressedMessages : data.messages;
@@ -114,14 +132,34 @@ export function ChatViewer({ data, onClear }: ChatViewerProps) {
   // Base messages based on view mode (original vs compressed)
   const baseMessages = viewMode === "compressed" && compressedMessages ? compressedMessages : data.messages;
 
-  // Filter messages based on active topic selection
-  const activeTopic = topics.find((t) => t.id === activeTopicId);
+  // Filter messages based on multi-selected toggled topics
+  const allowedTurnIndices = React.useMemo(() => {
+    if (isAllSelected) return null; // show all
+    const indices = new Set<number>();
+    for (const t of topics) {
+      if (selectedTopicIds.includes(t.id)) {
+        t.turn_indices.forEach((idx) => indices.add(idx));
+      }
+    }
+    return indices;
+  }, [isAllSelected, selectedTopicIds, topics]);
+
   const displayedEntries = baseMessages
     .map((message, originalIndex) => ({ message, originalIndex }))
     .filter(({ originalIndex }) => {
-      if (activeTopicId === "all" || !activeTopic) return true;
-      return activeTopic.turn_indices.includes(originalIndex);
+      if (!allowedTurnIndices) return true;
+      return allowedTurnIndices.has(originalIndex);
     });
+
+  const activeKeywords = React.useMemo(() => {
+    const kwSet = new Set<string>();
+    for (const t of topics) {
+      if (isAllSelected || selectedTopicIds.includes(t.id)) {
+        t.keywords.forEach((k) => kwSet.add(k));
+      }
+    }
+    return Array.from(kwSet).slice(0, 8);
+  }, [isAllSelected, selectedTopicIds, topics]);
 
   const getTopicLabelForTurn = (index: number): string | undefined => {
     if (!topics || topics.length <= 1) return undefined;
@@ -370,51 +408,63 @@ export function ChatViewer({ data, onClear }: ChatViewerProps) {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider text-emerald-400">
               <Filter className="h-3.5 w-3.5 text-[#00ff88]" />
-              <span>Subtopic Clusters & Dialogue Segmentation</span>
+              <span>Multi-Select Subtopics (Toggable)</span>
               {isLoadingTopics && <Loader2 className="h-3 w-3 animate-spin text-[#00ff88]" />}
             </div>
             <span className="text-[11px] font-mono text-zinc-500">
-              {activeTopicId === "all"
+              {isAllSelected
                 ? `Showing all ${data.message_count} turns`
-                : `Filtered to ${activeTopic?.turn_count} turns`}
+                : `Filtered to ${displayedEntries.length} turns (${selectedTopicIds.length} of ${topics.length} selected)`}
             </span>
           </div>
 
-          {/* Filter Pills Carousel */}
+          {/* Filter Pills Carousel (Multi-select toggling) */}
           <div className="flex flex-wrap items-center gap-2 pt-1">
-            {/* "All Turns" Reset Chip */}
+            {/* "All Turns" Toggle Chip */}
             <button
               type="button"
-              onClick={() => setActiveTopicId("all")}
+              onClick={handleSelectAll}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono transition-all cursor-pointer ${
-                activeTopicId === "all"
-                  ? "bg-emerald-500/20 text-[#00ff88] border border-emerald-500/50 shadow-[0_0_12px_rgba(0,255,136,0.25)] font-bold"
+                isAllSelected
+                  ? "bg-emerald-500/20 text-[#00ff88] border border-emerald-500/60 shadow-[0_0_12px_rgba(0,255,136,0.25)] font-bold"
                   : "bg-zinc-900/60 border border-zinc-800 text-zinc-400 hover:border-emerald-500/30 hover:text-zinc-200"
               }`}
             >
+              {isAllSelected && <Check className="h-3 w-3 stroke-[3] text-[#00ff88]" />}
               <span>All Turns</span>
               <span className="text-[10px] opacity-75 font-normal">({data.message_count})</span>
             </button>
 
-            {/* Individual Subtopic Cluster Chips */}
+            {/* Individual Subtopic Cluster Toggable Chips */}
             {topics.map((topic, idx) => {
-              const isSelected = activeTopicId === topic.id;
+              const isSelected = selectedTopicIds.includes(topic.id);
               return (
                 <button
                   key={topic.id}
                   type="button"
-                  onClick={() => setActiveTopicId(topic.id)}
+                  onClick={() => handleToggleTopic(topic.id)}
                   className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-mono transition-all cursor-pointer ${
                     isSelected
-                      ? "bg-emerald-500/20 text-[#00ff88] border border-emerald-500/60 shadow-[0_0_15px_rgba(0,255,136,0.3)] font-bold"
+                      ? "bg-emerald-500/25 text-[#00ff88] border border-[#00ff88] shadow-[0_0_15px_rgba(0,255,136,0.35)] font-bold"
                       : "bg-zinc-900/70 border border-zinc-800 text-zinc-300 hover:border-emerald-500/40 hover:text-[#00ff88] hover:bg-emerald-500/5"
                   }`}
+                  title={isSelected ? "Click to deselect topic" : "Click to add topic to filter"}
                 >
                   <span className="flex items-center gap-1.5">
-                    <span className="text-[10px] text-emerald-400 opacity-80">{idx + 1}.</span>
-                    <span className="truncate max-w-[200px] sm:max-w-[280px]">{topic.title}</span>
+                    {isSelected ? (
+                      <Check className="h-3 w-3 stroke-[3] text-[#00ff88] shrink-0" />
+                    ) : (
+                      <span className="text-[10px] text-emerald-400 opacity-80 shrink-0">{idx + 1}.</span>
+                    )}
+                    <span className="truncate max-w-[180px] sm:max-w-[260px]">{topic.title}</span>
                   </span>
-                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-zinc-800/80 text-zinc-400 border border-zinc-700/60 shrink-0">
+                  <span
+                    className={`text-[10px] px-1.5 py-0.2 rounded border shrink-0 ${
+                      isSelected
+                        ? "bg-emerald-500/20 text-[#00ff88] border-emerald-500/40"
+                        : "bg-zinc-800/80 text-zinc-400 border-zinc-700/60"
+                    }`}
+                  >
                     {topic.turn_count}
                   </span>
                 </button>
@@ -422,13 +472,13 @@ export function ChatViewer({ data, onClear }: ChatViewerProps) {
             })}
           </div>
 
-          {/* Active Topic Keywords Pill */}
-          {activeTopic && activeTopic.keywords.length > 0 && (
+          {/* Active Topics Keywords Pill */}
+          {activeKeywords.length > 0 && (
             <div className="flex flex-wrap items-center gap-1.5 pt-1 text-[11px] font-mono text-zinc-500 border-t border-zinc-900">
               <span className="flex items-center gap-1 text-emerald-400/70">
-                <Tag className="h-3 w-3" /> Keywords:
+                <Tag className="h-3 w-3" /> Topic Keywords:
               </span>
-              {activeTopic.keywords.map((kw, i) => (
+              {activeKeywords.map((kw, i) => (
                 <span
                   key={i}
                   className="px-2 py-0.5 rounded bg-zinc-900 text-zinc-300 border border-zinc-800 text-[10px]"
