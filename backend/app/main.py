@@ -11,10 +11,13 @@ from backend.app.schemas import (
     CompressChatResponse,
     SegmentTopicsRequest,
     SegmentTopicsResponse,
+    GenerateDocumentRequest,
+    GenerateDocumentResponse,
 )
 from backend.app.parsers.manager import parser_manager
 from backend.app.services.compression import compression_service
 from backend.app.services.segmentation import dialogue_segmentation_service
+from backend.app.services.document_generator import document_generator_service
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -124,4 +127,31 @@ async def segment_topics(payload: SegmentTopicsRequest):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to segment dialogue topics: {str(exc)}"
+        )
+
+
+@app.post("/api/generate-document", response_model=GenerateDocumentResponse)
+async def generate_document(payload: GenerateDocumentRequest):
+    """
+    Synthesizes the conversation into structured documents:
+    'study_notes', 'executive_summary', or 'decision_log'.
+    """
+    if not payload.messages:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Message array cannot be empty."
+        )
+
+    try:
+        result = document_generator_service.generate(
+            messages=payload.messages,
+            doc_type=payload.document_type,
+            title=payload.title,
+        )
+        return result
+    except Exception as exc:
+        logger.error(f"Error during document generation: {exc}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate structured document: {str(exc)}"
         )

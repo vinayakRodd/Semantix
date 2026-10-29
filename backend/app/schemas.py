@@ -71,3 +71,23 @@ class SegmentTopicsResponse(BaseModel):
     total_topics: int
     topics: List[TopicSegment]
     error: Optional[str] = None
+
+
+class GenerateDocumentRequest(BaseModel):
+    messages: List[ChatMessage] = Field(..., description="Messages to synthesize into a document")
+    document_type: str = Field(
+        "study_notes",
+        description="'study_notes' | 'executive_summary' | 'decision_log'",
+    )
+    title: Optional[str] = Field(None, description="Optional custom document title")
+
+
+class GenerateDocumentResponse(BaseModel):
+    success: bool = True
+    document_type: str
+    title: str
+    markdown_content: str
+    word_count: int
+    generation_time_ms: float
+    error: Optional[str] = None
+

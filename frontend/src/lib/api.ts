@@ -57,6 +57,16 @@ export interface SegmentTopicsResponse {
   error?: string;
 }
 
+export interface GenerateDocumentResponse {
+  success: boolean;
+  document_type: string;
+  title: string;
+  markdown_content: string;
+  word_count: number;
+  generation_time_ms: number;
+  error?: string;
+}
+
 const BACKEND_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -125,6 +135,39 @@ export async function segmentTopicsFromBackend(
 
   if (!response.ok) {
     let errorDetail = `Error ${response.status}: Failed to segment dialogue topics`;
+    try {
+      const errJson = await response.json();
+      if (errJson.detail) {
+        errorDetail = errJson.detail;
+      }
+    } catch {
+      // ignore
+    }
+    throw new Error(errorDetail);
+  }
+
+  return response.json();
+}
+
+export async function generateDocumentFromBackend(
+  messages: ChatMessage[],
+  documentType: string = "study_notes",
+  title?: string
+): Promise<GenerateDocumentResponse> {
+  const response = await fetch(`${BACKEND_BASE_URL}/api/generate-document`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      messages,
+      document_type: documentType,
+      title,
+    }),
+  });
+
+  if (!response.ok) {
+    let errorDetail = `Error ${response.status}: Failed to generate document`;
     try {
       const errJson = await response.json();
       if (errJson.detail) {

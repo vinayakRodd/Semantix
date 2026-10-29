@@ -19,6 +19,7 @@ import {
   ChevronDown,
   SlidersHorizontal,
   Eye,
+  FileText,
 } from "lucide-react";
 import {
   FetchChatResponse,
@@ -31,6 +32,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ChatMessageItem } from "@/components/chat-message-item";
+import { DocumentModal } from "@/components/document-modal";
 
 interface ChatViewerProps {
   data: FetchChatResponse;
@@ -44,6 +46,9 @@ export function ChatViewer({ data, onClear }: ChatViewerProps) {
   const [compressedMessages, setCompressedMessages] = useState<ChatMessage[] | null>(null);
   const [viewMode, setViewMode] = useState<"original" | "compressed">("original");
   const [compressionError, setCompressionError] = useState<string | null>(null);
+
+  // Document Generator Modal State
+  const [isDocModalOpen, setIsDocModalOpen] = useState(false);
 
   // Topic Segmentation States (Multi-select toggling & collapsible)
   const [topics, setTopics] = useState<TopicSegment[]>([]);
@@ -382,6 +387,17 @@ export function ChatViewer({ data, onClear }: ChatViewerProps) {
               </AnimatePresence>
             </div>
 
+            {/* Generate Document Action Button */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsDocModalOpen(true)}
+              className="gap-1.5 text-xs font-bold border-emerald-500/50 bg-emerald-950/20 text-[#00ff88] hover:bg-emerald-500/10 hover:border-[#00ff88] hover:shadow-[0_0_15px_rgba(0,255,136,0.3)] cursor-pointer whitespace-nowrap"
+            >
+              <FileText className="h-3.5 w-3.5 text-[#00ff88]" />
+              <span>Generate Document</span>
+            </Button>
+
             {/* The Compression & Metrics Action Button */}
             <Button
               variant="outline"
@@ -683,6 +699,14 @@ export function ChatViewer({ data, onClear }: ChatViewerProps) {
           ))}
         </AnimatePresence>
       </div>
+
+      {/* Document Generator & Exporter Modal */}
+      <DocumentModal
+        isOpen={isDocModalOpen}
+        onClose={() => setIsDocModalOpen(false)}
+        messages={displayedEntries.map((e) => e.message)}
+        conversationTitle={data.title}
+      />
     </motion.div>
   );
 }

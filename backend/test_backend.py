@@ -116,6 +116,39 @@ def test_api_endpoints():
     assert r.status_code == 400
     print("✓ API POST /api/segment-topics empty array rejected (400 Bad Request)")
 
+    # 10. POST /api/generate-document (study_notes)
+    r = client.post(
+        "/api/generate-document",
+        json={"messages": multi_topic_messages, "document_type": "study_notes", "title": "Database & AI Review"},
+    )
+    assert r.status_code == 200
+    doc_res = r.json()
+    assert doc_res["success"] is True
+    assert doc_res["word_count"] > 50
+    assert "Study Notes" in doc_res["markdown_content"]
+    print("✓ API POST /api/generate-document (study_notes) generated", doc_res["word_count"], "words in", doc_res["generation_time_ms"], "ms")
+
+    # 11. POST /api/generate-document (executive_summary & decision_log)
+    r_exec = client.post(
+        "/api/generate-document",
+        json={"messages": multi_topic_messages, "document_type": "executive_summary", "title": "Executive Tech Brief"},
+    )
+    assert r_exec.status_code == 200
+    assert "Executive Summary" in r_exec.json()["markdown_content"]
+
+    r_dec = client.post(
+        "/api/generate-document",
+        json={"messages": multi_topic_messages, "document_type": "decision_log", "title": "Architecture Decisions"},
+    )
+    assert r_dec.status_code == 200
+    assert "Decision" in r_dec.json()["markdown_content"]
+    print("✓ API POST /api/generate-document (executive_summary & decision_log) passed")
+
+    # 12. POST /api/generate-document empty messages
+    r_empty = client.post("/api/generate-document", json={"messages": []})
+    assert r_empty.status_code == 400
+    print("✓ API POST /api/generate-document empty array rejected (400 Bad Request)")
+
 
 if __name__ == "__main__":
     asyncio.run(test_parsers())
