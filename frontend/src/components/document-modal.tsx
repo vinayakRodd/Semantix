@@ -136,17 +136,17 @@ export function DocumentModal({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
+            transition={{ duration: 0.15 }}
             onClick={onClose}
             className="fixed inset-0 bg-black/80 backdrop-blur-md"
           />
 
           {/* Modal Container */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 15 }}
+            initial={{ opacity: 0, scale: 0.96, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 15 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
+            exit={{ opacity: 0, scale: 0.96, y: 10 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
             className="relative z-50 flex max-h-[90vh] w-full max-w-4xl flex-col rounded-3xl border border-emerald-500/40 bg-[#080a09] text-zinc-100 shadow-[0_0_50px_rgba(0,255,136,0.2)] backdrop-blur-3xl overflow-hidden"
           >
             {/* Top Modal Header */}

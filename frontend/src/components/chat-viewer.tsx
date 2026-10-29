@@ -688,7 +688,7 @@ export function ChatViewer({ data, onClear }: ChatViewerProps) {
 
       {/* Message Stream with AnimatePresence & Filtering */}
       <div className="space-y-4 w-full min-w-0 max-w-full">
-        <AnimatePresence mode="popLayout">
+        <AnimatePresence>
           {displayedEntries.map(({ message, originalIndex }) => (
             <ChatMessageItem
               key={`${viewMode}-${originalIndex}`}

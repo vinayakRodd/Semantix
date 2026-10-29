@@ -77,7 +77,7 @@ export function Sidebar({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
+            transition={{ duration: 0.15 }}
             onClick={onClose}
             className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm"
           />
@@ -87,7 +87,7 @@ export function Sidebar({
             initial={{ x: -320 }}
             animate={{ x: 0 }}
             exit={{ x: -320 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
             className="fixed inset-y-0 left-0 z-50 flex w-80 max-w-[85vw] flex-col border-r border-emerald-500/30 bg-[#080a09]/95 text-zinc-100 shadow-[0_0_35px_rgba(0,255,136,0.18)] backdrop-blur-2xl"
           >
             {/* Top Branding & Close Header */}

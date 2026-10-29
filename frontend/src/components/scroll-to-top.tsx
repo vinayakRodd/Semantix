@@ -37,10 +37,9 @@ export function ScrollToTop() {
           initial={{ opacity: 0, scale: 0.7, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.7, y: 15 }}
-          transition={{ duration: 0.25, ease: "easeOut" }}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.92 }}
-          className="fixed bottom-6 right-6 z-50 flex h-12 w-12 items-center justify-center rounded-full border border-emerald-500/50 bg-zinc-950/90 text-[#00ff88] shadow-[0_0_20px_rgba(0,255,136,0.3)] backdrop-blur-md transition-colors hover:border-[#00ff88] hover:bg-emerald-500/10 hover:shadow-[0_0_30px_rgba(0,255,136,0.5)] cursor-pointer"
+          transition={{ duration: 0.18, ease: "easeOut" }}
+          whileHover={{ scale: 1.05 }}
+          className="fixed bottom-6 right-6 z-50 flex h-12 w-12 items-center justify-center rounded-full border border-emerald-500/50 bg-zinc-950/90 text-[#00ff88] shadow-[0_0_20px_rgba(0,255,136,0.3)] backdrop-blur-md transition-colors duration-150 hover:border-[#00ff88] hover:bg-emerald-500/10 hover:shadow-[0_0_30px_rgba(0,255,136,0.5)] cursor-pointer"
           title="Scroll back to top"
           aria-label="Scroll back to top"
         >
