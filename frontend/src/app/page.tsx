@@ -7,7 +7,6 @@ import {
   MessageSquare,
   Terminal,
   AlertCircle,
-  Layers,
   Activity,
   CheckCircle2,
   XCircle,
@@ -213,7 +212,7 @@ export default function Home() {
             ) : chatData ? (
               <ChatViewer key="chat-viewer" data={chatData} onClear={handleClear} />
             ) : (
-              <EmptyState key="empty-state" onSelectSample={(url) => handleFetchChat(url)} />
+              <EmptyState key="empty-state" />
             )}
           </AnimatePresence>
         </div>
@@ -243,16 +242,16 @@ export default function Home() {
   );
 }
 
-function EmptyState({ onSelectSample }: { onSelectSample: (url: string) => void }) {
+function EmptyState() {
   return (
     <motion.div
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -15 }}
       transition={{ duration: 0.3 }}
-      className="rounded-2xl border border-dashed border-emerald-500/30 bg-zinc-950/40 p-8 sm:p-12 text-center space-y-6 shadow-xl"
+      className="rounded-2xl border border-dashed border-emerald-500/30 bg-zinc-950/40 p-8 sm:p-12 text-center space-y-4 shadow-xl"
     >
-      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-zinc-900 border border-emerald-500/30 text-emerald-400 shadow-[0_0_15px_rgba(0,255,136,0.15)]">
+      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-zinc-950 border border-emerald-500/30 text-emerald-400 shadow-[0_0_15px_rgba(0,255,136,0.15)]">
         <MessageSquare className="h-7 w-7 text-[#00ff88]" />
       </div>
 
@@ -261,36 +260,8 @@ function EmptyState({ onSelectSample }: { onSelectSample: (url: string) => void 
           No Conversation Loaded Yet
         </h3>
         <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed">
-          Paste a shared chat link into the input box above or try our curated examples to view dialogue turns, code blocks, and markdown formatting.
+          Paste a public shared chat link into the input box above to inspect dialogue turns, evaluate compression metrics, and synthesize documents.
         </p>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-lg mx-auto text-left">
-        <button
-          onClick={() => onSelectSample("sample://fastapi-architecture")}
-          className="group rounded-xl border border-emerald-500/20 bg-zinc-900/40 p-4 hover:border-[#00ff88] hover:bg-emerald-500/5 transition-all cursor-pointer shadow-sm hover:shadow-[0_0_15px_rgba(0,255,136,0.15)]"
-        >
-          <div className="flex items-center gap-2 text-xs font-semibold text-[#00ff88] mb-1 font-mono">
-            <Terminal className="h-3.5 w-3.5" />
-            <span>Python FastAPI Architecture</span>
-          </div>
-          <p className="text-[12px] text-zinc-400 line-clamp-2">
-            Inspect a 4-turn async Python backend discussion with syntax highlighted code blocks.
-          </p>
-        </button>
-
-        <button
-          onClick={() => onSelectSample("sample://claude-design-system")}
-          className="group rounded-xl border border-emerald-500/20 bg-zinc-900/40 p-4 hover:border-[#00ff88] hover:bg-emerald-500/5 transition-all cursor-pointer shadow-sm hover:shadow-[0_0_15px_rgba(0,255,136,0.15)]"
-        >
-          <div className="flex items-center gap-2 text-xs font-semibold text-emerald-300 mb-1 font-mono">
-            <Layers className="h-3.5 w-3.5" />
-            <span>Dark Mode Design Systems</span>
-          </div>
-          <p className="text-[12px] text-zinc-400 line-clamp-2">
-            Inspect Claude&apos;s UI/UX recommendations for elevation and dark tokens.
-          </p>
-        </button>
       </div>
     </motion.div>
   );
