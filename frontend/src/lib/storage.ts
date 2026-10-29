@@ -7,7 +7,8 @@ export interface HistoryItem {
   timestamp: string;
 }
 
-const STORAGE_KEY = "meghuchat_history_v1";
+const STORAGE_KEY = "semantix_history_v1";
+const LEGACY_STORAGE_KEY = "meghuchat_history_v1";
 
 const DEFAULT_PRESETS: HistoryItem[] = [
   {
@@ -50,7 +51,7 @@ export function getChatHistory(): HistoryItem[] {
   }
 
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
     if (!raw) {
       // Initialize with default presets on first visit
       localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_PRESETS));

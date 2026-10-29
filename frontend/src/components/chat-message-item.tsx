@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { User, Sparkles, Copy, Check } from "lucide-react";
+import { User, Cpu, Copy, Check } from "lucide-react";
 import { ChatMessage } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
 import { MarkdownContent } from "@/components/markdown-content";
@@ -53,7 +53,7 @@ export function ChatMessageItem({
         {isUser ? (
           <User className="h-4 w-4" />
         ) : (
-          <Sparkles className="h-4 w-4 text-[#00ff88]" />
+          <Cpu className="h-4 w-4 text-[#00ff88]" />
         )}
       </div>
 

@@ -21,11 +21,11 @@ from backend.app.services.document_generator import document_generator_service
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("meghu_backend")
+logger = logging.getLogger("semantix_backend")
 
 app = FastAPI(
-    title="Meghu LLM Chat Viewer Backend",
-    description="Asynchronous Python FastAPI service to fetch, parse, and compress shared LLM conversations",
+    title="Semantix LLM Dialogue & Synthesis Matrix Backend",
+    description="Asynchronous Python FastAPI service to fetch, parse, compress, and synthesize shared LLM conversations",
     version="1.0.0",
 )
 
@@ -48,7 +48,7 @@ app.add_middleware(
 async def health_check():
     return {
         "status": "healthy",
-        "service": "meghu-chat-backend",
+        "service": "semantix-backend",
         "version": "1.0.0"
     }
 

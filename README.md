@@ -1,4 +1,4 @@
-# MeghuChat: LLM Shared Conversation Inspector
+# Semantix: LLM Dialogue & Synthesis Matrix
 
 A full-stack application to fetch, decode, format, and interactively view shared LLM conversations (ChatGPT public share links, Claude, Perplexity, etc.) in a dark cyberpunk neon-green theme.
 

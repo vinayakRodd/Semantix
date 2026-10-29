@@ -5,11 +5,10 @@ import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   MessageSquare,
-  Bot,
   Terminal,
   AlertCircle,
   Layers,
-  Sparkles,
+  Activity,
   CheckCircle2,
   XCircle,
   Menu,
@@ -124,11 +123,11 @@ export default function Home() {
             </button>
 
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-zinc-950 border border-emerald-500/50 text-[#00ff88] shadow-[0_0_15px_rgba(0,255,136,0.25)] font-bold">
-              <Bot className="h-5 w-5" />
+              <Terminal className="h-4 w-4" />
             </div>
             <div>
               <span className="font-bold text-base tracking-tight text-white font-mono">
-                Meghu<span className="text-[#00ff88] neon-text-glow">Chat</span>
+                Semant<span className="text-[#00ff88] neon-text-glow">ix</span>
               </span>
               <span className="ml-2 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-mono text-[#00ff88]">
                 v1.0
@@ -165,11 +164,11 @@ export default function Home() {
         {/* Hero title & description */}
         <div className="text-center space-y-3.5 max-w-2xl mx-auto">
           <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-[#00ff88] shadow-[0_0_15px_rgba(0,255,136,0.15)] font-mono">
-            <Sparkles className="h-3.5 w-3.5" />
-            <span>Next.js 16 + FastAPI Chat Inspector</span>
+            <Activity className="h-3.5 w-3.5" />
+            <span>Next.js 16 + FastAPI Dialogue Matrix</span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
-            Fetch & Format <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00ff88] via-emerald-400 to-green-300 neon-text-glow">LLM Shared Chats</span>
+            Inspect, Compress &amp; Verify <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00ff88] via-emerald-400 to-green-300 neon-text-glow">LLM Conversations</span>
           </h1>
           <p className="text-sm sm:text-base text-zinc-400 leading-relaxed">
             Paste a public conversation link from ChatGPT, Claude, or Perplexity. Our Python backend extracts and parses the dialogue turns into structured, neon-accented dark markdown.
@@ -223,7 +222,7 @@ export default function Home() {
       {/* Footer with Neon Green Accents */}
       <footer className="border-t border-emerald-500/20 py-6 text-center text-xs text-zinc-500 font-mono">
         <p>
-          Built with Next.js, Tailwind CSS, <span className="text-[#00ff88]">Neon Green UI</span>, and Python FastAPI.
+          Semantix • Built with Next.js, Tailwind CSS, <span className="text-[#00ff88]">Neon Green UI</span>, and Python FastAPI.
         </p>
       </footer>
 

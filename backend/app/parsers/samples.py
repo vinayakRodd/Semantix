@@ -61,7 +61,7 @@ router = APIRouter()
 
 @router.get("/fetch-external")
 async def fetch_external_resource(target_url: str):
-    headers = {"User-Agent": "MeghuBot/1.0"}
+    headers = {"User-Agent": "SemantixBot/1.0"}
     timeout = httpx.Timeout(10.0, connect=5.0)
 
     async with httpx.AsyncClient(timeout=timeout) as client:

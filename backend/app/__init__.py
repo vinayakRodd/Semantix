@@ -1,1 +1,1 @@
-"""Meghu Chat Backend Application"""
+"""Semantix Backend Application"""

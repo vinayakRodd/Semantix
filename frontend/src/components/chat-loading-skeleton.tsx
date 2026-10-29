@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Terminal, Bot, User, Sparkles } from "lucide-react";
+import { Terminal, Cpu, User, Activity } from "lucide-react";
 
 export function ChatLoadingSkeleton() {
   return (
@@ -53,7 +53,7 @@ export function ChatLoadingSkeleton() {
       {/* Simulated Assistant Turn Skeleton */}
       <div className="flex gap-4 rounded-2xl p-5 border border-emerald-500/30 bg-zinc-950/60 neon-glow-card animate-pulse">
         <div className="h-9 w-9 shrink-0 rounded-xl bg-zinc-950 border border-emerald-500/50 flex items-center justify-center text-[#00ff88] shadow-[0_0_12px_rgba(0,255,136,0.2)]">
-          <Bot className="h-4 w-4" />
+          <Cpu className="h-4 w-4" />
         </div>
         <div className="flex-1 space-y-3 pt-1">
           <div className="flex items-center gap-2">
@@ -63,8 +63,8 @@ export function ChatLoadingSkeleton() {
           <div className="h-4 w-full bg-zinc-800/70 rounded-md" />
           <div className="h-4 w-5/6 bg-zinc-800/70 rounded-md" />
           <div className="h-24 w-full bg-zinc-900/90 rounded-xl border border-emerald-500/20 mt-2 flex items-center justify-center">
-            <span className="text-xs font-mono text-emerald-400/50 flex items-center gap-1.5">
-              <Sparkles className="h-3.5 w-3.5" /> Parsing markdown & code blocks...
+            <span className="text-xs font-mono text-emerald-400/70 flex items-center gap-1.5">
+              <Activity className="h-3.5 w-3.5" /> Parsing markdown & code blocks...
             </span>
           </div>
         </div>

@@ -6,9 +6,8 @@ import {
   X,
   Plus,
   History,
-  Bot,
+  Terminal,
   Settings,
-  Sparkles,
   Cpu,
   ShieldCheck,
   Search,
@@ -94,10 +93,10 @@ export function Sidebar({
             <div className="flex h-16 items-center justify-between border-b border-emerald-500/20 px-5">
               <div className="flex items-center gap-3">
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-emerald-500/50 bg-zinc-950 text-[#00ff88] shadow-[0_0_12px_rgba(0,255,136,0.3)] font-bold">
-                  <Bot className="h-4 w-4" />
+                  <Terminal className="h-4 w-4" />
                 </div>
                 <div className="font-mono text-sm font-bold tracking-tight text-white">
-                  Meghu<span className="text-[#00ff88] neon-text-glow">Chat</span>
+                  Semant<span className="text-[#00ff88] neon-text-glow">ix</span>
                 </div>
                 <span className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.2 text-[10px] font-mono text-[#00ff88]">
                   v1.0
@@ -129,7 +128,7 @@ export function Sidebar({
                   <Plus className="h-4 w-4 stroke-[3]" />
                   <span>New Conversation Inspect</span>
                 </div>
-                <Sparkles className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100" />
+                <ChevronRight className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100" />
               </button>
 
               {/* Stored Conversations / History Section */}

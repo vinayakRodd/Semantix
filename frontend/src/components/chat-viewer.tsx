@@ -7,7 +7,6 @@ import {
   Copy,
   Check,
   Hash,
-  Sparkles,
   Zap,
   DollarSign,
   Clock,
@@ -20,6 +19,7 @@ import {
   SlidersHorizontal,
   Eye,
   FileText,
+  Terminal,
 } from "lucide-react";
 import {
   FetchChatResponse,
@@ -232,7 +232,7 @@ export function ChatViewer({ data, onClear }: ChatViewerProps) {
         <div className="space-y-2.5 w-full">
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="neon" className="gap-1.5 font-mono whitespace-nowrap shrink-0">
-              <Sparkles className="h-3 w-3 text-[#00ff88]" />
+              <Terminal className="h-3 w-3 text-[#00ff88]" />
               {data.platform}
             </Badge>
             <Badge variant="secondary" className="gap-1 font-mono text-zinc-300 border-zinc-800 whitespace-nowrap shrink-0">

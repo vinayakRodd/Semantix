@@ -14,12 +14,13 @@ import {
   Layers,
   Binary,
   ArrowDown,
-  Sparkles,
   CheckCircle2,
   Workflow,
   Code,
   ImageIcon,
   ExternalLink,
+  CheckSquare,
+  Circle,
 } from "lucide-react";
 
 interface MarkdownContentProps {
@@ -400,10 +401,8 @@ function CanvasIcon({ name }: { name: string }) {
       return <Binary {...iconProps} />;
     case "arrow-down":
       return <ArrowDown className="h-4 w-4 text-[#00ff88]/80 my-1 mx-auto block" />;
-    case "sparkles":
-      return <Sparkles {...iconProps} />;
     default:
-      return <Sparkles {...iconProps} />;
+      return <Circle className="h-3 w-3 text-[#00ff88] shrink-0 fill-current opacity-60" />;
   }
 }
 
@@ -581,7 +580,7 @@ function InteractiveChecklist({
     <div className="my-5 w-full max-w-full overflow-hidden rounded-2xl border border-emerald-500/40 bg-zinc-950/80 p-4 sm:p-5 shadow-2xl neon-glow-card backdrop-blur-md space-y-4">
       <div className="flex items-center justify-between gap-2">
         <h4 className="font-bold text-white text-base flex items-center gap-2 truncate font-mono">
-          <Sparkles className="h-4 w-4 text-[#00ff88] shrink-0" />
+          <CheckSquare className="h-4 w-4 text-[#00ff88] shrink-0" />
           <span className="truncate">{title}</span>
         </h4>
         <span className="text-xs font-mono font-semibold text-[#00ff88] bg-emerald-500/15 border border-emerald-500/40 px-2.5 py-1 rounded-full shrink-0 shadow-[0_0_10px_rgba(0,255,136,0.15)]">

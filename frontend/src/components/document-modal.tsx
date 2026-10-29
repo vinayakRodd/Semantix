@@ -12,7 +12,7 @@ import {
   Check,
   Loader2,
   Clock,
-  Sparkles,
+  Activity,
   FileDown,
 } from "lucide-react";
 import {
@@ -226,7 +226,7 @@ export function DocumentModal({
                   {/* Meta pill row */}
                   <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-emerald-500/30 bg-zinc-950/80 p-3 text-xs font-mono">
                     <div className="flex items-center gap-2 text-zinc-400">
-                      <Sparkles className="h-3.5 w-3.5 text-[#00ff88]" />
+                      <Activity className="h-3.5 w-3.5 text-[#00ff88]" />
                       <span>Word Count: <strong className="text-white">{docData.word_count.toLocaleString()}</strong> words</span>
                     </div>
                     <div className="flex items-center gap-1.5 text-emerald-400">

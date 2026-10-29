@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Meghu LLM Chat Viewer",
-  description: "View and format shared LLM conversations seamlessly",
+  title: "Semantix - LLM Dialogue & Synthesis Matrix",
+  description: "Inspect, compress, verify, and synthesize shared LLM conversations",
 };
 
 export default function RootLayout({

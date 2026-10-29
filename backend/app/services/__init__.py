@@ -1,1 +1,1 @@
-"""Meghu Chat Services Package"""
+"""Semantix Services Package"""
