@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { UrlInput } from "@/components/url-input";
 import { ChatLoadingSkeleton } from "@/components/chat-loading-skeleton";
+import { ScrollToTop } from "@/components/scroll-to-top";
 import {
   fetchChatFromBackend,
   fetchSampleOptions,
@@ -189,6 +190,9 @@ export default function Home() {
           Built with Next.js, Tailwind CSS, <span className="text-[#00ff88]">Neon Green UI</span>, and Python FastAPI.
         </p>
       </footer>
+
+      {/* Floating Scroll To Top Button */}
+      <ScrollToTop />
     </div>
   );
 }
