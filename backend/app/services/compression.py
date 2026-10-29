@@ -1,6 +1,6 @@
 import re
 import time
-from typing import List, Tuple
+from typing import List
 import tiktoken
 
 from backend.app.schemas import ChatMessage, CompressionMetrics, CompressChatResponse
@@ -9,15 +9,15 @@ from backend.app.schemas import ChatMessage, CompressionMetrics, CompressChatRes
 INPUT_PRICE_PER_TOKEN = 2.50 / 1_000_000
 OUTPUT_PRICE_PER_TOKEN = 10.00 / 1_000_000
 
-# Common conversational opening fluff patterns
+# Common conversational opening fluff patterns (including colloquial speech like "Bro,")
 OPENING_FILLER_REGEX = re.compile(
-    r"^(?:(?:Sure|Certainly|Of course|I'd be happy to help|I would be glad to help|Great question|No problem|Alright|Hello|Hey there|Hi)[!,.]?\s*)+",
+    r"^(?:(?:Sure|Certainly|Of course|I'd be happy to help|I would be glad to help|Great question|No problem|Alright|Hello|Hey there|Hi|Bro|Hey bro|No bro|Got it bro|Sure bro)[!.,]?\s*)+",
     re.IGNORECASE,
 )
 
-# Common conversational closing fluff patterns
-CLOSING_FILLER_REGEX = re.compile(
-    r"(?:\n\s*)*(?:Hope this helps[!.]?|Let me know if you (?:have any (?:other )?questions|need (?:further|more) (?:help|details)|want to explore more)[!.]?|Feel free to ask (?:follow-up )?questions[!.]?)\s*$",
+# Common conversational closing fluff and repetitive boilerplate offers
+CLOSING_BOILERPLATE_REGEX = re.compile(
+    r"(?:\n\s*)*(?:---+\s*)?(?:(?:If you want(?:, I can)?:?|Let me know if you (?:have any (?:other )?questions|need (?:further|more) (?:help|details)|want to explore more)[!.]?|Feel free to ask (?:follow-up )?questions[!.]?|Hope this helps[!.]?)\s*(?:\n\s*[-*]\s*.*)*)\s*$",
     re.IGNORECASE,
 )
 
@@ -52,24 +52,63 @@ class CompressionService:
         return len(self.encoder.encode(text, disallowed_special=()))
 
     def compress_text(self, text: str, role: str) -> str:
-        """Deterministic local compression without semantic loss."""
+        """
+        Deterministic Sem-EL Module 1 Compression:
+        - Removes conversational fluff, opening pleasantries, and closing boilerplate offers
+        - Strips heavy Canvas/DIL XML tags outside code blocks while preserving text & structure
+        - Strips internal search citations (<Cite .../>)
+        - Normalizes whitespace and blank lines
+        """
         if not text:
             return ""
 
-        compressed = text
+        # Separate fenced code blocks so code logic is NEVER corrupted
+        segments = self._split_code_blocks(text)
 
-        # Strip conversational pleasantries from assistant responses
-        if role.lower() == "assistant":
-            compressed = OPENING_FILLER_REGEX.sub("", compressed)
-            compressed = CLOSING_FILLER_REGEX.sub("", compressed)
+        cleaned_segments = []
+        for is_code, seg in segments:
+            if is_code:
+                # Keep code blocks intact
+                cleaned_segments.append(seg)
+                continue
 
-        # Normalize multiple blank lines (3+ to 2)
-        compressed = re.sub(r"\n{3,}", "\n\n", compressed)
+            s = seg
 
-        # Normalize trailing whitespace on lines
-        compressed = re.sub(r"[ \t]+$", "", compressed, flags=re.MULTILINE)
+            if role.lower() == "assistant":
+                # 1. Strip repetitive boilerplate offers at the end
+                s = CLOSING_BOILERPLATE_REGEX.sub("", s)
 
-        return compressed.strip()
+                # 2. Strip colloquial opening filler
+                s = OPENING_FILLER_REGEX.sub("", s)
+
+                # 3. Strip internal citation tags
+                s = re.sub(r"<Cite\s+refs=\{[^}]*\}\s*\/?>", "", s)
+
+                # 4. Clean Canvas/DIL XML boilerplate into clean markdown
+                s = re.sub(r"<Link\s+url=\"([^\"]+)\"\s+title=\"([^\"]+)\"\s*\/?>", r"[\2](\1)", s)
+                s = re.sub(r"<\/?(?:box|row|divider|badge|text|title)[^>]*>", "", s)
+                s = re.sub(r"<icon\s+name=\"?[^\">]+\"?[^>]*\/?>", "", s)
+
+            # Normalize multiple consecutive blank lines
+            s = re.sub(r"\n{3,}", "\n\n", s)
+            # Normalize trailing whitespace on lines
+            s = re.sub(r"[ \t]+$", "", s, flags=re.MULTILINE)
+
+            cleaned_segments.append(s)
+
+        compressed = "".join(cleaned_segments).strip()
+        return compressed
+
+    def _split_code_blocks(self, text: str) -> List[Tuple[bool, str]]:
+        """Splits text into (is_code, chunk) tuples so code blocks remain untouched."""
+        parts = re.split(r"(```[\s\S]*?```)", text)
+        result = []
+        for p in parts:
+            if not p:
+                continue
+            is_code = p.startswith("```") and p.endswith("```")
+            result.append((is_code, p))
+        return result
 
     def process(self, messages: List[ChatMessage]) -> CompressChatResponse:
         start_time = time.perf_counter()
