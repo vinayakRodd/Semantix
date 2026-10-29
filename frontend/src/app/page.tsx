@@ -12,10 +12,12 @@ import {
   Sparkles,
   CheckCircle2,
   XCircle,
+  Menu,
 } from "lucide-react";
 import { UrlInput } from "@/components/url-input";
 import { ChatLoadingSkeleton } from "@/components/chat-loading-skeleton";
 import { ScrollToTop } from "@/components/scroll-to-top";
+import { Sidebar } from "@/components/sidebar";
 import {
   fetchChatFromBackend,
   fetchSampleOptions,
@@ -39,6 +41,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [backendOnline, setBackendOnline] = useState<boolean | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
 
   // Load samples and check backend status on mount
   useEffect(() => {
@@ -86,6 +89,17 @@ export default function Home() {
       <header className="sticky top-0 z-50 border-b border-emerald-500/20 bg-zinc-950/85 backdrop-blur-md">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
+            {/* Hamburger Toggle Button */}
+            <button
+              type="button"
+              onClick={() => setIsSidebarOpen(true)}
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-emerald-500/40 bg-zinc-950 text-[#00ff88] shadow-[0_0_12px_rgba(0,255,136,0.2)] hover:border-[#00ff88] hover:bg-emerald-500/10 transition-all cursor-pointer"
+              aria-label="Open sidebar"
+              title="Open sidebar"
+            >
+              <Menu className="h-4 w-4" />
+            </button>
+
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-zinc-950 border border-emerald-500/50 text-[#00ff88] shadow-[0_0_15px_rgba(0,255,136,0.25)] font-bold">
               <Bot className="h-5 w-5" />
             </div>
@@ -193,6 +207,14 @@ export default function Home() {
 
       {/* Floating Scroll To Top Button */}
       <ScrollToTop />
+
+      {/* Left Sidebar Drawer */}
+      <Sidebar
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        onSelectChat={(url) => handleFetchChat(url)}
+        onNewChat={handleClear}
+      />
     </div>
   );
 }
