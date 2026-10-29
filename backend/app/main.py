@@ -7,8 +7,11 @@ from backend.app.schemas import (
     FetchChatRequest,
     FetchChatResponse,
     SampleChatOption,
+    CompressChatRequest,
+    CompressChatResponse,
 )
 from backend.app.parsers.manager import parser_manager
+from backend.app.services.compression import compression_service
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -16,7 +19,7 @@ logger = logging.getLogger("meghu_backend")
 
 app = FastAPI(
     title="Meghu LLM Chat Viewer Backend",
-    description="Asynchronous Python FastAPI service to fetch and parse shared LLM conversations",
+    description="Asynchronous Python FastAPI service to fetch, parse, and compress shared LLM conversations",
     version="1.0.0",
 )
 
@@ -72,4 +75,27 @@ async def fetch_chat(payload: FetchChatRequest):
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"Unable to extract conversation: {str(exc)}"
+        )
+
+
+@app.post("/api/compress-chat", response_model=CompressChatResponse)
+async def compress_chat(payload: CompressChatRequest):
+    """
+    Evaluates token count via tiktoken, strips conversational fluff and low-entropy turns,
+    and calculates reduction %, cost savings (USD), and latency (ms).
+    """
+    if not payload.messages:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Message array cannot be empty."
+        )
+
+    try:
+        result = compression_service.process(payload.messages)
+        return result
+    except Exception as exc:
+        logger.error(f"Error during conversation compression: {exc}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to process compression metrics: {str(exc)}"
         )

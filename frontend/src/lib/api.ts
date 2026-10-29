@@ -24,6 +24,24 @@ export interface SampleChatOption {
   description: string;
 }
 
+export interface CompressionMetrics {
+  original_tokens: number;
+  compressed_tokens: number;
+  tokens_saved: number;
+  reduction_percentage: number;
+  original_cost_usd: number;
+  compressed_cost_usd: number;
+  cost_saved_usd: number;
+  processing_time_ms: number;
+}
+
+export interface CompressChatResponse {
+  success: boolean;
+  metrics: CompressionMetrics;
+  compressed_messages: ChatMessage[];
+  error?: string;
+}
+
 const BACKEND_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -38,6 +56,33 @@ export async function fetchChatFromBackend(url: string): Promise<FetchChatRespon
 
   if (!response.ok) {
     let errorDetail = `Error ${response.status}: Failed to fetch conversation`;
+    try {
+      const errJson = await response.json();
+      if (errJson.detail) {
+        errorDetail = errJson.detail;
+      }
+    } catch {
+      // ignore json parse error
+    }
+    throw new Error(errorDetail);
+  }
+
+  return response.json();
+}
+
+export async function compressChatFromBackend(
+  messages: ChatMessage[]
+): Promise<CompressChatResponse> {
+  const response = await fetch(`${BACKEND_BASE_URL}/api/compress-chat`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ messages }),
+  });
+
+  if (!response.ok) {
+    let errorDetail = `Error ${response.status}: Failed to compute compression metrics`;
     try {
       const errJson = await response.json();
       if (errJson.detail) {

@@ -1,5 +1,5 @@
 from typing import List, Optional, Dict, Any
-from pydantic import BaseModel, HttpUrl, Field
+from pydantic import BaseModel, Field
 
 
 class FetchChatRequest(BaseModel):
@@ -30,3 +30,25 @@ class SampleChatOption(BaseModel):
     platform: str
     url: str
     description: str
+
+
+class CompressionMetrics(BaseModel):
+    original_tokens: int = Field(..., description="Total tokens before compression")
+    compressed_tokens: int = Field(..., description="Total tokens after compression")
+    tokens_saved: int = Field(..., description="Absolute token reduction")
+    reduction_percentage: float = Field(..., description="Percentage of tokens saved")
+    original_cost_usd: float = Field(..., description="Estimated cost of original tokens (USD)")
+    compressed_cost_usd: float = Field(..., description="Estimated cost of compressed tokens (USD)")
+    cost_saved_usd: float = Field(..., description="Estimated money saved (USD)")
+    processing_time_ms: float = Field(..., description="Processing latency in milliseconds")
+
+
+class CompressChatRequest(BaseModel):
+    messages: List[ChatMessage] = Field(..., description="Conversation messages to evaluate and compress")
+
+
+class CompressChatResponse(BaseModel):
+    success: bool = True
+    metrics: CompressionMetrics
+    compressed_messages: List[ChatMessage]
+    error: Optional[str] = None

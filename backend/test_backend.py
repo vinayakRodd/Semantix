@@ -71,6 +71,31 @@ def test_api_endpoints():
     assert r.status_code == 422
     print("✓ API POST /api/fetch-chat missing url field rejected (422 Unprocessable)")
 
+    # 6. POST /api/compress-chat with valid messages
+    test_messages = [
+        {"role": "user", "content": "How do I optimize SQL queries in PostgreSQL?"},
+        {
+            "role": "assistant",
+            "content": "Sure! I would be glad to help with that. First, add an index on your filter columns. Second, use EXPLAIN ANALYZE. Hope this helps! Let me know if you have any questions!"
+        },
+        {"role": "user", "content": "thanks"},
+    ]
+    r = client.post("/api/compress-chat", json={"messages": test_messages})
+    assert r.status_code == 200
+    comp_data = r.json()
+    assert comp_data["success"] is True
+    metrics = comp_data["metrics"]
+    assert metrics["original_tokens"] > metrics["compressed_tokens"]
+    assert metrics["reduction_percentage"] > 0
+    assert metrics["processing_time_ms"] >= 0
+    assert len(comp_data["compressed_messages"]) == 2  # 'thanks' pruned, opening/closing fluff stripped
+    print("✓ API POST /api/compress-chat passed with", metrics["reduction_percentage"], "% reduction in", metrics["processing_time_ms"], "ms")
+
+    # 7. POST /api/compress-chat empty message list
+    r = client.post("/api/compress-chat", json={"messages": []})
+    assert r.status_code == 400
+    print("✓ API POST /api/compress-chat empty array rejected (400 Bad Request)")
+
 
 if __name__ == "__main__":
     asyncio.run(test_parsers())
