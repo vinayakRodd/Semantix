@@ -191,10 +191,10 @@ export function ChatViewer({ data, onClear }: ChatViewerProps) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -15 }}
       transition={{ duration: 0.35, ease: "easeOut" }}
-      className="w-full min-w-0 max-w-full space-y-6 overflow-hidden"
+      className="w-full min-w-0 max-w-full space-y-6 overflow-visible"
     >
       {/* Header Bar with Neon Green Glowing Card */}
-      <div className="rounded-2xl border border-emerald-500/40 bg-zinc-950/80 p-4 sm:p-5 shadow-2xl neon-glow-card backdrop-blur-xl w-full min-w-0 max-w-full overflow-hidden space-y-4">
+      <div className="rounded-2xl border border-emerald-500/40 bg-zinc-950/80 p-4 sm:p-5 shadow-2xl neon-glow-card backdrop-blur-xl w-full min-w-0 max-w-full space-y-4 relative z-30 overflow-visible">
         {/* Full-Width Header: Status Badges & Title (Immune to horizontal squishing) */}
         <div className="space-y-2.5 w-full">
           <div className="flex flex-wrap items-center gap-2">
@@ -293,10 +293,10 @@ export function ChatViewer({ data, onClear }: ChatViewerProps) {
                       animate={{ opacity: 1, scale: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.95, y: -5 }}
                       transition={{ duration: 0.2 }}
-                      className="absolute right-0 top-11 z-50 w-72 rounded-2xl border border-emerald-500/40 bg-zinc-950 p-4 shadow-2xl neon-glow-card backdrop-blur-2xl space-y-4"
+                      className="absolute right-0 top-12 z-50 w-80 rounded-2xl border-2 border-emerald-500/50 bg-[#080a09] p-4 shadow-[0_0_35px_rgba(0,255,136,0.3)] backdrop-blur-3xl space-y-4"
                     >
                       <div className="flex items-center justify-between pb-2 border-b border-emerald-500/20">
-                        <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#00ff88] flex items-center gap-1.5">
+                        <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#00ff88] flex items-center gap-1.5 neon-text-glow">
                           <Eye className="h-3.5 w-3.5" />
                           Feature Controls
                         </span>
@@ -358,46 +358,23 @@ export function ChatViewer({ data, onClear }: ChatViewerProps) {
                         </div>
                       </div>
 
-                      {/* 2. Feature Toggles */}
-                      <div className="space-y-2.5 pt-1 border-t border-zinc-900 text-xs font-mono">
-                        {/* Subtopic badges toggle */}
-                        <label className="flex items-center justify-between cursor-pointer group">
-                          <span className="text-zinc-300 group-hover:text-white">
-                            Subtopic Badges on Turns
-                          </span>
-                          <input
-                            type="checkbox"
-                            checked={showTopicBadges}
-                            onChange={(e) => setShowTopicBadges(e.target.checked)}
-                            className="h-4 w-4 rounded accent-[#00ff88] cursor-pointer"
-                          />
-                        </label>
-
-                        {/* Turn Timestamps toggle */}
-                        <label className="flex items-center justify-between cursor-pointer group">
-                          <span className="text-zinc-300 group-hover:text-white">
-                            Timestamps & Model Tags
-                          </span>
-                          <input
-                            type="checkbox"
-                            checked={showMetadata}
-                            onChange={(e) => setShowMetadata(e.target.checked)}
-                            className="h-4 w-4 rounded accent-[#00ff88] cursor-pointer"
-                          />
-                        </label>
-
-                        {/* Live Metrics HUD toggle */}
-                        <label className="flex items-center justify-between cursor-pointer group">
-                          <span className="text-zinc-300 group-hover:text-white">
-                            Live Metrics HUD Card
-                          </span>
-                          <input
-                            type="checkbox"
-                            checked={showMetricsHud}
-                            onChange={(e) => setShowMetricsHud(e.target.checked)}
-                            className="h-4 w-4 rounded accent-[#00ff88] cursor-pointer"
-                          />
-                        </label>
+                      {/* 2. macOS Style Feature Toggles */}
+                      <div className="space-y-1 pt-2 border-t border-zinc-800/80">
+                        <MacToggle
+                          checked={showTopicBadges}
+                          onChange={setShowTopicBadges}
+                          label="Subtopic Badges on Turns"
+                        />
+                        <MacToggle
+                          checked={showMetadata}
+                          onChange={setShowMetadata}
+                          label="Timestamps & Model Tags"
+                        />
+                        <MacToggle
+                          checked={showMetricsHud}
+                          onChange={setShowMetricsHud}
+                          label="Live Metrics HUD Card"
+                        />
                       </div>
                     </motion.div>
                   </>
@@ -707,5 +684,41 @@ export function ChatViewer({ data, onClear }: ChatViewerProps) {
         </AnimatePresence>
       </div>
     </motion.div>
+  );
+}
+
+function MacToggle({
+  checked,
+  onChange,
+  label,
+}: {
+  checked: boolean;
+  onChange: (val: boolean) => void;
+  label: string;
+}) {
+  return (
+    <div
+      onClick={() => onChange(!checked)}
+      className="flex items-center justify-between cursor-pointer select-none group py-1.5"
+    >
+      <span className="text-xs font-mono text-zinc-300 group-hover:text-white transition-colors">
+        {label}
+      </span>
+      {/* macOS capsule track */}
+      <div
+        className={`relative inline-flex h-5 w-10 shrink-0 items-center rounded-full transition-colors duration-200 ease-in-out cursor-pointer ${
+          checked
+            ? "bg-[#00ff88] shadow-[0_0_12px_rgba(0,255,136,0.45)]"
+            : "bg-zinc-800 border border-zinc-700/80"
+        }`}
+      >
+        {/* macOS circular slider knob */}
+        <span
+          className={`inline-block h-3.5 w-3.5 transform rounded-full shadow-md transition-transform duration-200 ease-in-out ${
+            checked ? "translate-x-5 bg-zinc-950" : "translate-x-1 bg-zinc-400"
+          }`}
+        />
+      </div>
+    </div>
   );
 }

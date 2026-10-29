@@ -161,7 +161,7 @@ export default function Home() {
       </header>
 
       {/* Main Content Area */}
-      <main className="relative flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8 min-w-0 overflow-hidden">
+      <main className="relative flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8 min-w-0">
         {/* Hero title & description */}
         <div className="text-center space-y-3.5 max-w-2xl mx-auto">
           <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-[#00ff88] shadow-[0_0_15px_rgba(0,255,136,0.15)] font-mono">
