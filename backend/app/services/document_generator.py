@@ -44,7 +44,7 @@ class DocumentGeneratorService:
     def generate_study_notes(self, messages: List[ChatMessage], title: str) -> str:
         date_str = datetime.now().strftime("%B %d, %Y")
         doc = [
-            f"# Notes: {title}",
+            f"# 📘 Notes: {title}",
             f"*Generated on {date_str}*",
             "\n---\n",
             "## 1. Core Inquiries & Questions\n",
@@ -84,7 +84,7 @@ class DocumentGeneratorService:
     def generate_executive_summary(self, messages: List[ChatMessage], title: str) -> str:
         date_str = datetime.now().strftime("%B %d, %Y")
         doc = [
-            f"# Summary: {title}",
+            f"# 📋 Summary: {title}",
             f"*Discussion Briefing — {date_str}*",
             "\n---\n",
             "## 1. Objective & Scope",
@@ -113,7 +113,7 @@ class DocumentGeneratorService:
     def generate_decision_log(self, messages: List[ChatMessage], title: str) -> str:
         date_str = datetime.now().strftime("%B %d, %Y")
         doc = [
-            f"# Decisions: {title}",
+            f"# 🎯 Decisions: {title}",
             f"**Topic:** {title} | **Date:** {date_str}",
             "\n---\n",
             "## Key Decisions & Takeaways\n",

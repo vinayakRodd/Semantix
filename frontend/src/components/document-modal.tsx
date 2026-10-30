@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
   FileText,
+  BookOpen,
+  Target,
   Download,
   Copy,
   Check,
@@ -35,16 +37,19 @@ const DOC_TYPES = [
     id: "study_notes" as DocType,
     label: "Notes",
     desc: "Key concepts, questions & takeaways",
+    icon: BookOpen,
   },
   {
     id: "executive_summary" as DocType,
     label: "Summary",
     desc: "Overview, findings & key takeaways",
+    icon: FileText,
   },
   {
     id: "decision_log" as DocType,
     label: "Decisions",
     desc: "Key conclusions, decisions & rationales",
+    icon: Target,
   },
 ];
 
@@ -216,24 +221,28 @@ export function DocumentModal({
             <div className="border-b border-zinc-800/80 bg-zinc-950/50 px-6 py-3">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 {DOC_TYPES.map((t) => {
+                  const Icon = t.icon;
                   const isActive = activeType === t.id;
                   return (
                     <button
                       key={t.id}
                       type="button"
                       onClick={() => setActiveType(t.id)}
-                      className={`flex flex-col gap-0.5 rounded-xl border p-2.5 text-left transition-all cursor-pointer ${
+                      className={`flex items-center gap-2.5 rounded-xl border p-2.5 text-left transition-all cursor-pointer ${
                         isActive
                           ? "border-[#00ff88] bg-emerald-500/15 text-[#00ff88] shadow-[0_0_15px_rgba(0,255,136,0.2)] font-bold"
                           : "border-zinc-800/80 bg-zinc-900/40 text-zinc-400 hover:border-emerald-500/30 hover:text-zinc-200"
                       }`}
                     >
-                      <div className="text-xs font-mono font-semibold tracking-wide flex items-center justify-between">
-                        <span>{t.label}</span>
-                        {isActive && <span className="h-1.5 w-1.5 rounded-full bg-[#00ff88]" />}
-                      </div>
-                      <div className="truncate text-[10px] opacity-75 font-normal">
-                        {t.desc}
+                      <Icon className="h-4 w-4 shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs font-mono font-semibold tracking-wide flex items-center justify-between">
+                          <span>{t.label}</span>
+                          {isActive && <span className="h-1.5 w-1.5 rounded-full bg-[#00ff88]" />}
+                        </div>
+                        <div className="truncate text-[10px] opacity-75 font-normal">
+                          {t.desc}
+                        </div>
                       </div>
                     </button>
                   );

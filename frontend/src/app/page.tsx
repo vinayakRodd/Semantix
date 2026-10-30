@@ -121,8 +121,8 @@ export default function Home() {
         <div className="absolute -top-40 left-1/2 -translate-x-1/2 h-[550px] w-[900px] bg-neon-radial blur-3xl opacity-80" />
       </div>
 
-      {/* Navigation Bar with Neon Green Accent */}
-      <header className="sticky top-0 z-50 border-b border-emerald-500/20 bg-zinc-950/85 backdrop-blur-md">
+      {/* Navigation Bar with Neon Green Accent - Fixed Hinged on Scroll */}
+      <header className="fixed top-0 left-0 right-0 z-50 w-full border-b border-emerald-500/20 bg-zinc-950/90 backdrop-blur-md shadow-lg shadow-black/40">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             {/* Hamburger Toggle Button */}
@@ -150,6 +150,9 @@ export default function Home() {
           </div>
         </div>
       </header>
+
+      {/* Fixed Navbar Height Spacer */}
+      <div className="h-16 shrink-0 w-full" aria-hidden="true" />
 
       {/* Main Content Area */}
       <main className="relative flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8 min-w-0">
