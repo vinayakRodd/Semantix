@@ -44,20 +44,20 @@ class DocumentGeneratorService:
     def generate_study_notes(self, messages: List[ChatMessage], title: str) -> str:
         date_str = datetime.now().strftime("%B %d, %Y")
         doc = [
-            f"# 📘 Notes: {title}",
-            f"*Generated on {date_str} via Sem-EL Automated Document Synthesis*",
+            f"# Notes: {title}",
+            f"*Generated on {date_str}*",
             "\n---\n",
-            "## 1. Learning Objectives & Core Inquiries\n",
+            "## 1. Core Inquiries & Questions\n",
         ]
 
         user_queries = [m.content.strip() for m in messages if m.role.lower() == "user"]
         if user_queries:
-            doc.append("**Questions Analyzed:**\n")
+            doc.append("**Questions Explored:**\n")
             for idx, q in enumerate(user_queries[:5], 1):
                 q_clean = q.split("\n")[0][:140]
                 doc.append(f"{idx}. {q_clean}")
 
-        doc.append("\n## 2. Key Principles & Conceptual Breakdown\n")
+        doc.append("\n## 2. Key Principles & Core Concepts\n")
 
         all_assistant_text = "\n\n".join(m.content for m in messages if m.role.lower() == "assistant")
         bullet_points = self.extract_bullet_points(all_assistant_text, max_points=12)
@@ -66,16 +66,16 @@ class DocumentGeneratorService:
             for pt in bullet_points:
                 doc.append(f"- {pt}")
         else:
-            doc.append("- Review foundational concepts and verify implementation patterns.")
+            doc.append("- Review key discussion points and foundational concepts.")
 
-        # Extract Code Patterns & Implementation Reference
+        # Extract Reference Examples if any
         code_blocks = []
         for m in messages:
             if m.role.lower() == "assistant":
                 code_blocks.extend(self.extract_code_blocks(m.content))
 
         if code_blocks:
-            doc.append("\n## 3. Code Patterns & Implementation Reference\n")
+            doc.append("\n## 3. Reference Examples & Details\n")
             for idx, (lang, code) in enumerate(code_blocks[:4], 1):
                 doc.append(f"### Example {idx} ({lang})\n```{lang}\n{code}\n```\n")
 
@@ -84,39 +84,39 @@ class DocumentGeneratorService:
     def generate_executive_summary(self, messages: List[ChatMessage], title: str) -> str:
         date_str = datetime.now().strftime("%B %d, %Y")
         doc = [
-            f"# 📋 Summary: {title}",
-            f"*Confidential Technical Briefing — {date_str}*",
+            f"# Summary: {title}",
+            f"*Discussion Briefing — {date_str}*",
             "\n---\n",
-            "## 1. Problem Statement & Scope",
+            "## 1. Objective & Scope",
         ]
 
         user_msgs = [m.content.strip() for m in messages if m.role.lower() == "user"]
-        primary_scope = user_msgs[0].split("\n")[0] if user_msgs else "Technical architecture evaluation"
-        doc.append(f"The objective of this engagement was addressing the following technical problem:\n\n> {primary_scope}\n")
+        primary_scope = user_msgs[0].split("\n")[0] if user_msgs else "General discussion overview"
+        doc.append(f"The primary inquiry addressed in this discussion was:\n\n> {primary_scope}\n")
 
-        doc.append("## 2. Architectural Findings & Key Solutions\n")
+        doc.append("## 2. Key Findings & Insights\n")
         all_assistant_text = "\n\n".join(m.content for m in messages if m.role.lower() == "assistant")
         bullets = self.extract_bullet_points(all_assistant_text, max_points=8)
 
         if bullets:
-            doc.append("**Key Findings:**\n")
+            doc.append("**Key Takeaways:**\n")
             for b in bullets:
                 doc.append(f"- {b}")
 
-        doc.append("\n## 3. Complexity, Cost & Performance Tradeoffs\n")
-        doc.append("- **Execution Latency:** Sub-millisecond deterministic processing for local stages.")
-        doc.append("- **Resource Utilization:** Optimized memory footprint via non-blocking asynchronous I/O.")
-        doc.append("- **Token Economy:** Pruned conversational overhead to prevent model billing inflation.")
+        doc.append("\n## 3. Analysis & Considerations\n")
+        doc.append("- **Core Focus:** Clarified primary questions and identified fundamental principles.")
+        doc.append("- **Depth & Coherence:** Detailed reasoning provided with practical examples and structure.")
+        doc.append("- **Actionable Clarity:** Established consistent direction and concise outcomes.")
 
         return "\n".join(doc)
 
     def generate_decision_log(self, messages: List[ChatMessage], title: str) -> str:
         date_str = datetime.now().strftime("%B %d, %Y")
         doc = [
-            f"# 🎯 Decisions: {title}",
-            f"**Project:** {title} | **Date:** {date_str}",
+            f"# Decisions: {title}",
+            f"**Topic:** {title} | **Date:** {date_str}",
             "\n---\n",
-            "## Architectural Decisions\n",
+            "## Key Decisions & Takeaways\n",
         ]
 
         # Extract major headings as decisions
@@ -128,12 +128,13 @@ class DocumentGeneratorService:
             for idx, h in enumerate(headings[:5], 1):
                 doc.append(f"### Decision {idx}: {h}")
                 doc.append(f"- **Status:** Accepted")
-                doc.append(f"- **Context:** Derived from consensus during technical review.")
-                doc.append(f"- **Consequences:** Ensures clean modularity and verifiable behavior.\n")
+                doc.append(f"- **Context:** Established from dialogue consensus and core takeaways.")
+                doc.append(f"- **Outcome:** Provides clear alignment and defined direction.\n")
         else:
-            doc.append("### Decision 1: Technical Baseline Adoption")
+            doc.append("### Decision 1: Primary Direction & Consensus")
             doc.append("- **Status:** Accepted")
-            doc.append("- **Consequences:** Maintain standard architectural style throughout implementation.\n")
+            doc.append("- **Context:** Established from primary discussion consensus.")
+            doc.append("- **Outcome:** Maintains clear alignment and consistent direction throughout.\n")
 
         return "\n".join(doc)
 

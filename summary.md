@@ -84,29 +84,29 @@ The service relies on three primary regex-based semantic extraction algorithms:
 ### 4.2. Document Synthesis Archetypes
 
 #### A. Notes (`generate_study_notes`)
-Designed for technical reviews, interview prep, and algorithmic study:
-- **Inquiries Analyzed**: Extracts every core question asked by the user, formatted under a single unified header (`**Questions Analyzed:**`) without repeating the word *"Question:"* on every line.
-- **Key Principles & Conceptual Breakdown**: Aggregates assistant explanations into clean, numbered/bulleted engineering principles.
-- **Code Patterns & Implementation Reference**: Renders full syntax-highlighted code blocks extracted directly from assistant responses.
-- *Eliminates generic boilerplate checkboxes or synthetic checklists to keep technical notes authentic to the dialogue.*
+Designed for clean topic review and Q&A analysis:
+- **Questions Explored**: Consolidates user inquiries under a single clean header (`**Questions Explored:**`) without redundant line-by-line prefixes.
+- **Key Principles & Core Concepts**: Aggregates assistant responses into concise, structured discussion takeaways.
+- **Reference Examples & Details**: Preserves reference code fences or structural examples with clean headers.
+- *Header format: `# Notes: {title}` (all emoji icons and boilerplate checklists removed).*
 
 #### B. Summary (`generate_executive_summary`)
-Designed for architectural briefings and engineering management:
-- **Problem Statement & Scope**: Automatically derives the primary technical objective from initial user turns.
-- **Architectural Findings & Key Solutions**: Aggregates the core solutions under a single clean header (`**Key Findings:**`), eliminating redundant line-by-line prefixes.
-- **Complexity, Cost & Performance Tradeoffs**: Details execution latency, non-blocking asynchronous I/O utilization, and token savings computed via Tiktoken.
-- *Omits canned recommendations in favor of the actual decisions made during the conversation.*
+Designed for executive overviews and discussion briefings:
+- **Objective & Scope**: Derives the primary inquiry addressed from initial user turns.
+- **Key Findings & Insights**: Aggregates core takeaways under `**Key Takeaways:**` without repetitive labels.
+- **Analysis & Considerations**: Highlights core focus, depth/coherence, and actionable clarity applicable to any topic (technical or general).
+- *Header format: `# Summary: {title}` (all clipboard icons and boilerplate recommendations removed).*
 
 #### C. Decisions (`generate_decision_log`)
-Designed as an Architecture Decision Record (ADR-style):
-- **Decision Records**: Mines prominent markdown headings from the assistant turns and formats them cleanly:
+Designed for consensus tracking and key outcomes:
+- **Decision Records**: Mines prominent markdown headings from dialogue turns into structured records:
   ```markdown
-  ### Decision 1: {Extracted Architecture Heading}
+  ### Decision 1: {Discussion Topic / Heading}
   - **Status:** Accepted
-  - **Context:** Derived from consensus during technical review.
-  - **Consequences:** Ensures clean modularity and verifiable behavior.
+  - **Context:** Established from dialogue consensus and core takeaways.
+  - **Outcome:** Provides clear alignment and defined direction.
   ```
-- *Removes generic action checklists and unverified follow-up placeholders.*
+- *Header format: `# Decisions: {title}` (all target/ADR icons and synthetic action lists removed).*
 
 ---
 

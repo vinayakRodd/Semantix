@@ -5,8 +5,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
   FileText,
-  BookOpen,
-  CheckSquare,
   Download,
   Copy,
   Check,
@@ -14,6 +12,7 @@ import {
   Clock,
   Activity,
   FileDown,
+  Terminal,
 } from "lucide-react";
 import {
   ChatMessage,
@@ -35,20 +34,17 @@ const DOC_TYPES = [
   {
     id: "study_notes" as DocType,
     label: "Notes",
-    desc: "Key principles, syntax & code patterns",
-    icon: BookOpen,
+    desc: "Key concepts, questions & takeaways",
   },
   {
     id: "executive_summary" as DocType,
     label: "Summary",
-    desc: "Architecture, problem statement & tradeoffs",
-    icon: FileText,
+    desc: "Overview, findings & key takeaways",
   },
   {
     id: "decision_log" as DocType,
     label: "Decisions",
-    desc: "Key architectural decisions & rationales",
-    icon: CheckSquare,
+    desc: "Key conclusions, decisions & rationales",
   },
 ];
 
@@ -194,17 +190,14 @@ export function DocumentModal({
             <div className="flex items-center justify-between border-b border-emerald-500/20 px-6 py-4.5 bg-zinc-950/80">
               <div className="flex items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-emerald-500/50 bg-zinc-950 text-[#00ff88] shadow-[0_0_15px_rgba(0,255,136,0.25)]">
-                  <FileText className="h-4 w-4" />
+                  <Terminal className="h-4 w-4" />
                 </div>
                 <div>
                   <h3 className="font-mono text-base font-bold text-white flex items-center gap-2">
-                    <span>Semantix Analysis</span>
-                    <span className="rounded-full border border-emerald-500/40 bg-emerald-500/15 px-2 py-0.5 text-[10px] font-mono text-[#00ff88]">
-                      Module 4
-                    </span>
+                    <span>Dialogue Analysis</span>
                   </h3>
                   <p className="text-xs text-zinc-400">
-                    Deterministic dialogue analysis & structured insights
+                    Structured conversation insights & key takeaways
                   </p>
                 </div>
               </div>
@@ -223,25 +216,24 @@ export function DocumentModal({
             <div className="border-b border-zinc-800/80 bg-zinc-950/50 px-6 py-3">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 {DOC_TYPES.map((t) => {
-                  const Icon = t.icon;
                   const isActive = activeType === t.id;
                   return (
                     <button
                       key={t.id}
                       type="button"
                       onClick={() => setActiveType(t.id)}
-                      className={`flex items-center gap-2.5 rounded-xl border p-2.5 text-left transition-all cursor-pointer ${
+                      className={`flex flex-col gap-0.5 rounded-xl border p-2.5 text-left transition-all cursor-pointer ${
                         isActive
                           ? "border-[#00ff88] bg-emerald-500/15 text-[#00ff88] shadow-[0_0_15px_rgba(0,255,136,0.2)] font-bold"
                           : "border-zinc-800/80 bg-zinc-900/40 text-zinc-400 hover:border-emerald-500/30 hover:text-zinc-200"
                       }`}
                     >
-                      <Icon className="h-4 w-4 shrink-0" />
-                      <div className="min-w-0">
-                        <div className="text-xs font-mono">{t.label}</div>
-                        <div className="truncate text-[10px] opacity-75 font-normal">
-                          {t.desc}
-                        </div>
+                      <div className="text-xs font-mono font-semibold tracking-wide flex items-center justify-between">
+                        <span>{t.label}</span>
+                        {isActive && <span className="h-1.5 w-1.5 rounded-full bg-[#00ff88]" />}
+                      </div>
+                      <div className="truncate text-[10px] opacity-75 font-normal">
+                        {t.desc}
                       </div>
                     </button>
                   );
