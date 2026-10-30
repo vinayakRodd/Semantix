@@ -13,6 +13,7 @@ export interface FetchChatResponse {
   messages: ChatMessage[];
   message_count: number;
   metadata?: Record<string, unknown>;
+  topics?: TopicSegment[];
   error?: string;
 }
 

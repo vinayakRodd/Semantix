@@ -23,6 +23,8 @@ import {
 } from "@/lib/storage";
 import {
   fetchChatFromBackend,
+  segmentTopicsFromBackend,
+  TopicSegment,
   FetchChatResponse,
 } from "@/lib/api";
 
@@ -47,10 +49,35 @@ export default function Home() {
   const handleFetchChat = async (url: string) => {
     setIsLoading(true);
     setError(null);
+    setChatData(null);
+
+    const startTime = Date.now();
 
     try {
       const data = await fetchChatFromBackend(url);
-      setChatData(data);
+
+      // Pre-segment topics in the background while the loader is smoothly running
+      let topics: TopicSegment[] = [];
+      if (data.messages && data.messages.length > 1) {
+        try {
+          const segRes = await segmentTopicsFromBackend(data.messages);
+          if (segRes.success && segRes.topics) {
+            topics = segRes.topics;
+          }
+        } catch {
+          // Graceful fallback
+        }
+      }
+
+      // Smooth pacing so multi-stage loader cycles through Fetching -> Parsing -> Processing -> Loading
+      // without violent sudden visual jerks
+      const elapsed = Date.now() - startTime;
+      const minDisplayMs = 1500;
+      if (elapsed < minDisplayMs) {
+        await new Promise((resolve) => setTimeout(resolve, minDisplayMs - elapsed));
+      }
+
+      setChatData({ ...data, topics });
 
       // Automatically store public link & conversation in browser localStorage
       const updatedHistory = saveChatToHistory({

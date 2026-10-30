@@ -44,16 +44,18 @@ class DocumentGeneratorService:
     def generate_study_notes(self, messages: List[ChatMessage], title: str) -> str:
         date_str = datetime.now().strftime("%B %d, %Y")
         doc = [
-            f"# 📘 Study Notes: {title}",
+            f"# 📘 Notes: {title}",
             f"*Generated on {date_str} via Sem-EL Automated Document Synthesis*",
             "\n---\n",
-            "## 1. Learning Objectives & Core Inquiries",
+            "## 1. Learning Objectives & Core Inquiries\n",
         ]
 
         user_queries = [m.content.strip() for m in messages if m.role.lower() == "user"]
-        for idx, q in enumerate(user_queries[:5], 1):
-            q_clean = q.split("\n")[0][:140]
-            doc.append(f"{idx}. **Question:** {q_clean}")
+        if user_queries:
+            doc.append("**Questions Analyzed:**\n")
+            for idx, q in enumerate(user_queries[:5], 1):
+                q_clean = q.split("\n")[0][:140]
+                doc.append(f"{idx}. {q_clean}")
 
         doc.append("\n## 2. Key Principles & Conceptual Breakdown\n")
 
@@ -77,18 +79,12 @@ class DocumentGeneratorService:
             for idx, (lang, code) in enumerate(code_blocks[:4], 1):
                 doc.append(f"### Example {idx} ({lang})\n```{lang}\n{code}\n```\n")
 
-        # Study Review Checklist
-        doc.append("\n## 4. Self-Assessment & Review Checklist\n")
-        doc.append("- [ ] Verify core algorithmic or architectural principles without looking at reference solutions.")
-        doc.append("- [ ] Reproduce the key code structures or pattern implementations independently.")
-        doc.append("- [ ] Identify edge cases, time/space complexity bottlenecks, and production safeguards.")
-
         return "\n".join(doc)
 
     def generate_executive_summary(self, messages: List[ChatMessage], title: str) -> str:
         date_str = datetime.now().strftime("%B %d, %Y")
         doc = [
-            f"# 📋 Executive Summary: {title}",
+            f"# 📋 Summary: {title}",
             f"*Confidential Technical Briefing — {date_str}*",
             "\n---\n",
             "## 1. Problem Statement & Scope",
@@ -102,28 +98,25 @@ class DocumentGeneratorService:
         all_assistant_text = "\n\n".join(m.content for m in messages if m.role.lower() == "assistant")
         bullets = self.extract_bullet_points(all_assistant_text, max_points=8)
 
-        for b in bullets:
-            doc.append(f"- **Finding:** {b}")
+        if bullets:
+            doc.append("**Key Findings:**\n")
+            for b in bullets:
+                doc.append(f"- {b}")
 
         doc.append("\n## 3. Complexity, Cost & Performance Tradeoffs\n")
         doc.append("- **Execution Latency:** Sub-millisecond deterministic processing for local stages.")
         doc.append("- **Resource Utilization:** Optimized memory footprint via non-blocking asynchronous I/O.")
         doc.append("- **Token Economy:** Pruned conversational overhead to prevent model billing inflation.")
 
-        doc.append("\n## 4. Strategic Recommendations\n")
-        doc.append("1. **Phase 1 Deployment:** Standardize the foundational architecture patterns approved in this discussion.")
-        doc.append("2. **Verification Guardrails:** Implement automated test suites to validate invariants before production release.")
-        doc.append("3. **Continuous Monitoring:** Monitor error rates, throughput latency, and failure fallbacks under peak load.")
-
         return "\n".join(doc)
 
     def generate_decision_log(self, messages: List[ChatMessage], title: str) -> str:
         date_str = datetime.now().strftime("%B %d, %Y")
         doc = [
-            f"# 🎯 Architecture Decision Record & Action Items",
+            f"# 🎯 Decisions: {title}",
             f"**Project:** {title} | **Date:** {date_str}",
             "\n---\n",
-            "## 1. Architectural Decisions (ADR)\n",
+            "## Architectural Decisions\n",
         ]
 
         # Extract major headings as decisions
@@ -133,24 +126,14 @@ class DocumentGeneratorService:
 
         if headings:
             for idx, h in enumerate(headings[:5], 1):
-                doc.append(f"### ADR-0{idx}: {h}")
+                doc.append(f"### Decision {idx}: {h}")
                 doc.append(f"- **Status:** Accepted")
                 doc.append(f"- **Context:** Derived from consensus during technical review.")
                 doc.append(f"- **Consequences:** Ensures clean modularity and verifiable behavior.\n")
         else:
-            doc.append("### ADR-01: Technical Baseline Adoption")
+            doc.append("### Decision 1: Technical Baseline Adoption")
             doc.append("- **Status:** Accepted")
             doc.append("- **Consequences:** Maintain standard architectural style throughout implementation.\n")
-
-        doc.append("## 2. Action Items Checklist\n")
-        doc.append("- [ ] Refactor existing implementations to match the verified patterns.")
-        doc.append("- [ ] Implement boundary tests and fuzz test cases against unexpected inputs.")
-        doc.append("- [ ] Document API schemas and request/response contracts.")
-        doc.append("- [ ] Configure CI/CD pipeline linters and build verification gates.")
-
-        doc.append("\n## 3. Unresolved Questions & Follow-ups\n")
-        doc.append("- Benchmark system under simulated concurrent traffic.")
-        doc.append("- Evaluate external API rate limits and resilience fallbacks.")
 
         return "\n".join(doc)
 

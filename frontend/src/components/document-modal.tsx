@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
@@ -34,20 +34,20 @@ type DocType = "study_notes" | "executive_summary" | "decision_log";
 const DOC_TYPES = [
   {
     id: "study_notes" as DocType,
-    label: "Study Notes",
+    label: "Notes",
     desc: "Key principles, syntax & code patterns",
     icon: BookOpen,
   },
   {
     id: "executive_summary" as DocType,
-    label: "Executive Summary",
+    label: "Summary",
     desc: "Architecture, problem statement & tradeoffs",
     icon: FileText,
   },
   {
     id: "decision_log" as DocType,
-    label: "Decision Log & Tasks",
-    desc: "Accepted ADRs & action checklist",
+    label: "Decisions",
+    desc: "Key architectural decisions & rationales",
     icon: CheckSquare,
   },
 ];
@@ -60,16 +60,29 @@ export function DocumentModal({
 }: DocumentModalProps) {
   const [activeType, setActiveType] = useState<DocType>("study_notes");
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [docData, setDocData] = useState<GenerateDocumentResponse | null>(null);
+  const [cache, setCache] = useState<Partial<Record<DocType, GenerateDocumentResponse>>>({});
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Generate or re-generate when modal opens or activeType changes
+  // Clear cache if messages or conversation title changes
+  const prevTitleRef = useRef(conversationTitle);
+  useEffect(() => {
+    if (prevTitleRef.current !== conversationTitle) {
+      prevTitleRef.current = conversationTitle;
+      setCache({});
+    }
+  }, [conversationTitle]);
+
+  // Load active document type, leveraging cache and pre-fetching other types smoothly
   useEffect(() => {
     if (!isOpen || !messages || messages.length === 0) return;
 
     let isMounted = true;
-    async function fetchDoc() {
+
+    async function loadActive() {
+      // If already cached, no need to show loading screen or re-fetch
+      if (cache[activeType]) return;
+
       setIsLoading(true);
       setError(null);
       try {
@@ -79,14 +92,14 @@ export function DocumentModal({
           conversationTitle
         );
         if (isMounted && res.success) {
-          setDocData(res);
+          setCache((prev) => ({ ...prev, [activeType]: res }));
         }
       } catch (err: unknown) {
         if (isMounted) {
           if (err instanceof Error) {
             setError(err.message);
           } else {
-            setError("Failed to generate document.");
+            setError("Failed to generate analysis.");
           }
         }
       } finally {
@@ -94,11 +107,36 @@ export function DocumentModal({
       }
     }
 
-    fetchDoc();
+    loadActive();
+
+    // In parallel, prefetch uncached tabs in the background so tab-switching is instant
+    const uncached = DOC_TYPES.map((d) => d.id).filter(
+      (id) => id !== activeType && !cache[id]
+    );
+
+    if (uncached.length > 0) {
+      uncached.forEach(async (type) => {
+        try {
+          const res = await generateDocumentFromBackend(
+            messages,
+            type,
+            conversationTitle
+          );
+          if (isMounted && res.success) {
+            setCache((prev) => ({ ...prev, [type]: res }));
+          }
+        } catch {
+          // ignore background prefetch error
+        }
+      });
+    }
+
     return () => {
       isMounted = false;
     };
-  }, [isOpen, activeType, messages, conversationTitle]);
+  }, [isOpen, activeType, messages, conversationTitle, cache]);
+
+  const docData = cache[activeType] || null;
 
   const handleCopy = () => {
     if (!docData) return;
@@ -109,10 +147,13 @@ export function DocumentModal({
 
   const handleDownloadFile = (extension: "md" | "txt") => {
     if (!docData) return;
-    const mimeType = extension === "md" ? "text/markdown;charset=utf-8" : "text/plain;charset=utf-8";
+    const mimeType =
+      extension === "md"
+        ? "text/markdown;charset=utf-8"
+        : "text/plain;charset=utf-8";
     const blob = new Blob([docData.markdown_content], { type: mimeType });
     const url = URL.createObjectURL(blob);
-    const safeTitle = (conversationTitle || "document")
+    const safeTitle = (conversationTitle || "analysis")
       .toLowerCase()
       .replace(/[^a-z0-9_-]/g, "_")
       .replace(/_+/g, "_");
@@ -157,13 +198,13 @@ export function DocumentModal({
                 </div>
                 <div>
                   <h3 className="font-mono text-base font-bold text-white flex items-center gap-2">
-                    <span>Sem-EL Document Generator</span>
+                    <span>Semantix Analysis</span>
                     <span className="rounded-full border border-emerald-500/40 bg-emerald-500/15 px-2 py-0.5 text-[10px] font-mono text-[#00ff88]">
                       Module 4
                     </span>
                   </h3>
                   <p className="text-xs text-zinc-400">
-                    Deterministic synthesis & structured file exporter
+                    Deterministic dialogue analysis & structured insights
                   </p>
                 </div>
               </div>
@@ -209,37 +250,55 @@ export function DocumentModal({
             </div>
 
             {/* Document Preview & Content Area */}
-            <div className="flex-1 overflow-y-auto p-6 scrollbar-thin">
-              {isLoading ? (
-                <div className="flex flex-col items-center justify-center py-20 space-y-3">
+            <div className="flex-1 min-h-[380px] overflow-y-auto p-6 scrollbar-thin">
+              {isLoading && !docData ? (
+                <div className="flex flex-col items-center justify-center min-h-[340px] space-y-3">
                   <Loader2 className="h-8 w-8 animate-spin text-[#00ff88]" />
                   <span className="text-xs font-mono text-emerald-400/90 animate-pulse">
-                    Synthesizing {DOC_TYPES.find((d) => d.id === activeType)?.label}...
+                    Analyzing {DOC_TYPES.find((d) => d.id === activeType)?.label}...
                   </span>
                 </div>
-              ) : error ? (
+              ) : error && !docData ? (
                 <div className="p-4 rounded-xl border border-rose-900/60 bg-rose-950/20 text-xs text-rose-300">
                   {error}
                 </div>
               ) : docData ? (
-                <div className="space-y-4">
-                  {/* Meta pill row */}
-                  <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-emerald-500/30 bg-zinc-950/80 p-3 text-xs font-mono">
-                    <div className="flex items-center gap-2 text-zinc-400">
-                      <Activity className="h-3.5 w-3.5 text-[#00ff88]" />
-                      <span>Word Count: <strong className="text-white">{docData.word_count.toLocaleString()}</strong> words</span>
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={activeType}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.18, ease: "easeOut" }}
+                    className="space-y-4"
+                  >
+                    {/* Meta pill row */}
+                    <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-emerald-500/30 bg-zinc-950/80 p-3 text-xs font-mono">
+                      <div className="flex items-center gap-2 text-zinc-400">
+                        <Activity className="h-3.5 w-3.5 text-[#00ff88]" />
+                        <span>
+                          Word Count:{" "}
+                          <strong className="text-white">
+                            {docData.word_count.toLocaleString()}
+                          </strong>{" "}
+                          words
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-emerald-400">
+                        <Clock className="h-3.5 w-3.5" />
+                        <span>
+                          Generated in{" "}
+                          <strong>{docData.generation_time_ms} ms</strong>
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1.5 text-emerald-400">
-                      <Clock className="h-3.5 w-3.5" />
-                      <span>Generated in <strong>{docData.generation_time_ms} ms</strong></span>
-                    </div>
-                  </div>
 
-                  {/* Formatted Markdown Body */}
-                  <div className="rounded-2xl border border-zinc-800/90 bg-zinc-950/50 p-6 shadow-inner">
-                    <MarkdownContent content={docData.markdown_content} />
-                  </div>
-                </div>
+                    {/* Formatted Markdown Body */}
+                    <div className="rounded-2xl border border-zinc-800/90 bg-zinc-950/50 p-6 shadow-inner">
+                      <MarkdownContent content={docData.markdown_content} />
+                    </div>
+                  </motion.div>
+                </AnimatePresence>
               ) : null}
             </div>
 
@@ -254,7 +313,7 @@ export function DocumentModal({
                 <button
                   type="button"
                   onClick={handleCopy}
-                  disabled={!docData || isLoading}
+                  disabled={!docData || (isLoading && !docData)}
                   className="flex items-center gap-1.5 rounded-xl border border-emerald-500/30 bg-zinc-900 px-4 py-2 text-xs font-mono font-medium text-emerald-300 hover:border-emerald-400 hover:text-[#00ff88] transition-all cursor-pointer disabled:opacity-50"
                 >
                   {copied ? (
@@ -274,7 +333,7 @@ export function DocumentModal({
                 <button
                   type="button"
                   onClick={() => handleDownloadFile("txt")}
-                  disabled={!docData || isLoading}
+                  disabled={!docData || (isLoading && !docData)}
                   className="flex items-center gap-1.5 rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-xs font-mono text-zinc-300 hover:border-zinc-700 hover:text-white transition-all cursor-pointer disabled:opacity-50"
                   title="Download as plain text (.txt)"
                 >
@@ -286,7 +345,7 @@ export function DocumentModal({
                 <button
                   type="button"
                   onClick={() => handleDownloadFile("md")}
-                  disabled={!docData || isLoading}
+                  disabled={!docData || (isLoading && !docData)}
                   className="flex items-center gap-2 rounded-xl border border-[#00ff88] bg-zinc-950 px-5 py-2 text-xs font-mono font-bold text-[#00ff88] shadow-[0_0_15px_rgba(0,255,136,0.25)] hover:bg-emerald-500/10 hover:shadow-[0_0_25px_rgba(0,255,136,0.4)] transition-all cursor-pointer disabled:opacity-50"
                 >
                   <Download className="h-3.5 w-3.5 stroke-[2.5]" />

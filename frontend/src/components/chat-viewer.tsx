@@ -51,7 +51,7 @@ export function ChatViewer({ data, onClear }: ChatViewerProps) {
   const [isDocModalOpen, setIsDocModalOpen] = useState(false);
 
   // Topic Segmentation States (Multi-select toggling & collapsible)
-  const [topics, setTopics] = useState<TopicSegment[]>([]);
+  const [topics, setTopics] = useState<TopicSegment[]>(data.topics || []);
   const [selectedTopicIds, setSelectedTopicIds] = useState<string[]>([]);
   const [isLoadingTopics, setIsLoadingTopics] = useState(false);
   const [isTopicsExpanded, setIsTopicsExpanded] = useState(true);
@@ -91,9 +91,16 @@ export function ChatViewer({ data, onClear }: ChatViewerProps) {
     };
   }, [isFeatureFilterOpen]);
 
-  // Fetch topic segmentation automatically when messages load
+  // Fetch topic segmentation automatically if not already pre-loaded
   useEffect(() => {
     let isMounted = true;
+
+    if (data.topics && data.topics.length > 0) {
+      setTopics(data.topics);
+      setSelectedTopicIds([]);
+      return;
+    }
+
     async function loadTopics() {
       if (!data.messages || data.messages.length <= 1) {
         setTopics([]);
@@ -116,7 +123,7 @@ export function ChatViewer({ data, onClear }: ChatViewerProps) {
     return () => {
       isMounted = false;
     };
-  }, [data.messages]);
+  }, [data.messages, data.topics]);
 
   const handleToggleTopic = (topicId: string) => {
     setSelectedTopicIds((prev) => {
@@ -409,7 +416,7 @@ export function ChatViewer({ data, onClear }: ChatViewerProps) {
               </AnimatePresence>
             </div>
 
-            {/* Generate Document Action Button */}
+            {/* Analyse Action Button */}
             <Button
               variant="outline"
               size="sm"
@@ -417,7 +424,7 @@ export function ChatViewer({ data, onClear }: ChatViewerProps) {
               className="gap-1.5 text-xs font-bold border-emerald-500/50 bg-emerald-950/20 text-[#00ff88] hover:bg-emerald-500/10 hover:border-[#00ff88] hover:shadow-[0_0_15px_rgba(0,255,136,0.3)] cursor-pointer whitespace-nowrap"
             >
               <FileText className="h-3.5 w-3.5 text-[#00ff88]" />
-              <span>Generate Document</span>
+              <span>Analyse</span>
             </Button>
 
             {/* The Compression & Metrics Action Button */}

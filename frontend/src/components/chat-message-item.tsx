@@ -30,10 +30,9 @@ export function ChatMessageItem({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 15 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-20px" }}
-      transition={{ duration: 0.35, ease: "easeOut" }}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.28, ease: "easeOut" }}
       className={cn(
         "group relative flex gap-4 rounded-2xl p-4 sm:p-5 transition-all duration-200 w-full min-w-0 max-w-full overflow-hidden",
         isUser
