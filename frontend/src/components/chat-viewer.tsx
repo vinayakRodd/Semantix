@@ -193,19 +193,21 @@ export function ChatViewer({ data, onClear }: ChatViewerProps) {
     return indices;
   }, [isAllSelected, selectedTopicIds, topics]);
 
-  const displayedEntries = baseMessages
-    .map((message, originalIndex) => ({ message, originalIndex }))
-    .filter(({ message, originalIndex }) => {
-      // 1. Topic filtering
-      if (allowedTurnIndices && !allowedTurnIndices.has(originalIndex)) {
-        return false;
-      }
-      // 2. Role filtering
-      if (roleFilter !== "all" && message.role.toLowerCase() !== roleFilter) {
-        return false;
-      }
-      return true;
-    });
+  const displayedEntries = React.useMemo(() => {
+    return baseMessages
+      .map((message, originalIndex) => ({ message, originalIndex }))
+      .filter(({ message, originalIndex }) => {
+        // 1. Topic filtering
+        if (allowedTurnIndices && !allowedTurnIndices.has(originalIndex)) {
+          return false;
+        }
+        // 2. Role filtering
+        if (roleFilter !== "all" && message.role.toLowerCase() !== roleFilter) {
+          return false;
+        }
+        return true;
+      });
+  }, [baseMessages, allowedTurnIndices, roleFilter]);
 
   const activeKeywords = React.useMemo(() => {
     const kwSet = new Set<string>();
@@ -217,11 +219,21 @@ export function ChatViewer({ data, onClear }: ChatViewerProps) {
     return Array.from(kwSet).slice(0, 8);
   }, [isAllSelected, selectedTopicIds, topics]);
 
-  const getTopicLabelForTurn = (index: number): string | undefined => {
-    if (!showTopicBadges || !topics || topics.length <= 1) return undefined;
-    const found = topics.find((t) => t.turn_indices.includes(index));
-    return found ? found.title : undefined;
-  };
+  const topicLabelMap = React.useMemo(() => {
+    if (!showTopicBadges || !topics || topics.length <= 1) return new Map<number, string>();
+    const map = new Map<number, string>();
+    for (const t of topics) {
+      for (const idx of t.turn_indices) {
+        map.set(idx, t.title);
+      }
+    }
+    return map;
+  }, [showTopicBadges, topics]);
+
+  const getTopicLabelForTurn = React.useCallback(
+    (index: number): string | undefined => topicLabelMap.get(index),
+    [topicLabelMap]
+  );
 
   const hasCustomFilters = roleFilter !== "all" || !showTopicBadges || !showMetadata || !showMetricsHud;
 
@@ -324,10 +336,10 @@ export function ChatViewer({ data, onClear }: ChatViewerProps) {
               <AnimatePresence>
                 {isFeatureFilterOpen && (
                   <motion.div
-                    initial={{ opacity: 0, scale: 0.95, y: -5 }}
+                    initial={{ opacity: 0, scale: 0.98, y: -4 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95, y: -5 }}
-                    transition={{ duration: 0.2 }}
+                    exit={{ opacity: 0, scale: 0.98, y: -4 }}
+                    transition={{ duration: 0.12, ease: "easeOut" }}
                     className="absolute right-0 top-12 z-50 w-80 rounded-2xl border-2 border-emerald-500/50 bg-[#080a09] p-4 shadow-[0_0_35px_rgba(0,255,136,0.3)] backdrop-blur-3xl space-y-4"
                   >
                       <div className="flex items-center justify-between pb-2 border-b border-emerald-500/20">
@@ -615,17 +627,16 @@ export function ChatViewer({ data, onClear }: ChatViewerProps) {
               </span>
 
               {/* Animated Dropdown Chevron Arrow */}
-              <button
-                type="button"
+              <div
                 className="flex h-7 w-7 items-center justify-center rounded-lg border border-zinc-800 bg-zinc-900 text-zinc-400 group-hover:border-emerald-500/40 group-hover:text-[#00ff88] transition-all"
                 title={isTopicsExpanded ? "Collapse subtopics bar" : "Expand subtopics bar"}
               >
                 <ChevronDown
-                  className={`h-4 w-4 transition-transform duration-200 ${
+                  className={`h-4 w-4 transition-transform duration-150 ${
                     isTopicsExpanded ? "rotate-180 text-[#00ff88]" : ""
                   }`}
                 />
-              </button>
+              </div>
             </div>
           </div>
 
@@ -740,7 +751,7 @@ export function ChatViewer({ data, onClear }: ChatViewerProps) {
   );
 }
 
-function MacToggle({
+const MacToggle = React.memo(function MacToggle({
   checked,
   onChange,
   label,
@@ -759,7 +770,7 @@ function MacToggle({
       </span>
       {/* macOS capsule track */}
       <div
-        className={`relative inline-flex h-5 w-10 shrink-0 items-center rounded-full transition-colors duration-200 ease-in-out cursor-pointer ${
+        className={`relative inline-flex h-5 w-10 shrink-0 items-center rounded-full transition-colors duration-150 ease-in-out cursor-pointer ${
           checked
             ? "bg-[#00ff88] shadow-[0_0_12px_rgba(0,255,136,0.45)]"
             : "bg-zinc-800 border border-zinc-700/80"
@@ -767,11 +778,11 @@ function MacToggle({
       >
         {/* macOS circular slider knob */}
         <span
-          className={`inline-block h-3.5 w-3.5 transform rounded-full shadow-md transition-transform duration-200 ease-in-out ${
+          className={`inline-block h-3.5 w-3.5 transform rounded-full shadow-md transition-transform duration-150 ease-in-out ${
             checked ? "translate-x-5 bg-zinc-950" : "translate-x-1 bg-zinc-400"
           }`}
         />
       </div>
     </div>
   );
-}
+});

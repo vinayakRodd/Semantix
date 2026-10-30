@@ -43,9 +43,12 @@ interface RadioGroupItem {
   options: RadioOption[];
 }
 
-export function MarkdownContent({ content }: MarkdownContentProps) {
+export const MarkdownContent = React.memo(function MarkdownContent({ content }: MarkdownContentProps) {
   // Pre-process Canvas / DIL / GenUI markup and unindent outside code
-  const { processedText, checklists, radioGroups } = preprocessCanvasContent(content);
+  const { processedText, checklists, radioGroups } = React.useMemo(
+    () => preprocessCanvasContent(content),
+    [content]
+  );
 
   const customComponents: Components = {
     // Code blocks
@@ -375,7 +378,7 @@ export function MarkdownContent({ content }: MarkdownContentProps) {
       </ReactMarkdown>
     </div>
   );
-}
+});
 
 function CanvasIcon({ name }: { name: string }) {
   const iconProps = { className: "h-5 w-5 text-[#00ff88] shrink-0" };

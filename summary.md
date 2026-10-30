@@ -169,6 +169,15 @@ Each stage illuminates in glowing `#00ff88` neon with synchronized progress bar 
 - Remaining document types are silently pre-fetched in the background upon modal open.
 - Integrated Framer Motion `<AnimatePresence mode="wait">` for fluid cross-fading.
 
+### 7.4. Instant Button & Dropdown Response (Zero-Lag UI)
+- **Root Cause of Click Lag**: Toggling any control (such as Feature Filters or Subtopics) triggered a full re-render of `ChatViewer`, which in turn caused every message item to re-parse raw markdown AST, re-run regex filters, and re-execute `rehypeRaw`/`remarkGfm`.
+- **Optimization Strategy**:
+  1. Wrapped `ChatMessageItem` and `MarkdownContent` in `React.memo` to skip re-renders when message content has not changed.
+  2. Memoized `preprocessCanvasContent(content)` with `React.useMemo` so regex AST extraction executes exactly once per turn.
+  3. Replaced $O(N \times M)$ topic search loops with an $O(1)$ memoized hash map lookup (`topicLabelMap`).
+  4. Eliminated invalid nested button elements inside the collapsible subtopics header to prevent double event dispatch.
+  5. Tightened transition durations to snappy 0.12s–0.15s curves for immediate tactile response.
+
 ---
 
 ## 8. Verification & Performance Benchmarks

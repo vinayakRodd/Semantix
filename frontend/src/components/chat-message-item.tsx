@@ -14,7 +14,7 @@ interface ChatMessageItemProps {
   showMetadata?: boolean;
 }
 
-export function ChatMessageItem({
+export const ChatMessageItem = React.memo(function ChatMessageItem({
   message,
   topicLabel,
   showMetadata = true,
@@ -109,4 +109,4 @@ export function ChatMessageItem({
       </div>
     </motion.div>
   );
-}
+});
